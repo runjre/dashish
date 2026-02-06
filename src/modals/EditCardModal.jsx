@@ -94,6 +94,7 @@ export default function EditCardModal({
   isEditCalendar,
   isEditCost,
   isEditCar,
+  isEditAndroidTV,
   editSettingsKey,
   editSettings,
   customNames,
@@ -104,6 +105,8 @@ export default function EditCardModal({
   hiddenCards,
   toggleCardVisibility
 }) {
+  const [mediaSearch, setMediaSearch] = React.useState('');
+
   if (!isOpen) return null;
 
   const isHidden = hiddenCards.includes(entityId);
@@ -153,6 +156,7 @@ export default function EditCardModal({
 
   const climateOptions = sortByName(byDomain('climate'));
   const calendarOptions = sortByName(byDomain('calendar'));
+  const mediaPlayerOptions = sortByName(byDomain('media_player'));
 
   const lastUpdatedOptions = sortByName(entityEntries
     .filter(([id]) => id.startsWith('sensor.') && id.toLowerCase().includes('update'))
@@ -350,6 +354,76 @@ export default function EditCardModal({
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editSettings.showHistory ? 'left-7' : 'left-1'}`} />
                   </button>
+              </div>
+            </div>
+          )}
+
+          {isEditAndroidTV && editSettingsKey && (
+            <div className="space-y-3">
+              <label className="text-xs uppercase font-bold text-gray-500 ml-1">{t('androidtv.linkedSpeakers') || 'Linked Speakers'}</label>
+              
+              {/* Selected Players */}
+              {Array.isArray(editSettings.linkedMediaPlayers) && editSettings.linkedMediaPlayers.length > 0 && (
+                 <div className="flex flex-wrap gap-2 mb-2">
+                    {editSettings.linkedMediaPlayers.map(id => (
+                       <div key={id} className="flex items-center gap-1 pl-3 pr-1 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400">
+                          <span className="text-xs font-bold">{entities[id]?.attributes?.friendly_name || id}</span>
+                          <button 
+                             onClick={() => {
+                                 const current = editSettings.linkedMediaPlayers;
+                                 saveCardSetting(editSettingsKey, 'linkedMediaPlayers', current.filter((x) => x !== id));
+                             }}
+                             className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                          >
+                             <X className="w-3 h-3" />
+                          </button>
+                       </div>
+                    ))}
+                 </div>
+              )}
+
+              <input 
+                type="text" 
+                placeholder="Search media players..." 
+                value={mediaSearch} 
+                onChange={(e) => setMediaSearch(e.target.value)} 
+                className="w-full px-3 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm focus:border-blue-500/50 outline-none mb-2 text-[var(--text-primary)]"
+              />
+
+              <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 max-h-56 overflow-y-auto custom-scrollbar space-y-2">
+                {mediaPlayerOptions.filter(id => {
+                  if (!mediaSearch) return true;
+                  const name = entities[id]?.attributes?.friendly_name || id;
+                  return name.toLowerCase().includes(mediaSearch.toLowerCase()) || id.toLowerCase().includes(mediaSearch.toLowerCase());
+                }).length === 0 && (
+                  <p className="text-xs text-[var(--text-muted)] text-center py-4">{t('media.noPlayersFound') || 'No players found'}</p>
+                )}
+                {mediaPlayerOptions
+                  .filter(id => {
+                    if (!mediaSearch) return true;
+                    const name = entities[id]?.attributes?.friendly_name || id;
+                    return name.toLowerCase().includes(mediaSearch.toLowerCase()) || id.toLowerCase().includes(mediaSearch.toLowerCase());
+                  })
+                  .map((id) => {
+                  const selected = Array.isArray(editSettings.linkedMediaPlayers) && editSettings.linkedMediaPlayers.includes(id);
+                  if (id === editSettings.mediaPlayerId) return null;
+                  
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        const current = Array.isArray(editSettings.linkedMediaPlayers) ? editSettings.linkedMediaPlayers : [];
+                        const next = selected ? current.filter((x) => x !== id) : [...current, id];
+                        saveCardSetting(editSettingsKey, 'linkedMediaPlayers', next);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl transition-colors border ${selected ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-transparent hover:bg-[var(--glass-bg-hover)] text-[var(--text-secondary)]'}`}
+                    >
+                      <div className="text-sm font-bold truncate">{entities[id]?.attributes?.friendly_name || id}</div>
+                      <div className="text-[10px] text-[var(--text-muted)] truncate">{id}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -413,6 +413,7 @@
   "time.hoursAgo": "for {hours} timar sidan",
   "time.hoursMinutesAgo": "for {hours}t {minutes}m sidan",
   "time.unknown": "ukjend tid",
+  "media.audio": "Lyd",
   "calendar.title": "Kalender",
   "calendar.selectCalendars": "Vel Kalendrar",
   "calendar.noCalendarsFound": "Ingen kalendrar funne",

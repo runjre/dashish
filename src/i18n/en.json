@@ -411,6 +411,7 @@
   "time.hoursAgo": "{hours} hours ago",
   "time.hoursMinutesAgo": "{hours}h {minutes}m ago",
   "time.unknown": "unknown time",
+  "media.audio": "Audio",
   "calendar.title": "Calendar",
   "calendar.selectCalendars": "Select Calendars",
   "calendar.noCalendarsFound": "No calendars found",

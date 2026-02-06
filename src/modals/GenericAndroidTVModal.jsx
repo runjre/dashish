@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   X, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, 
   SkipBack, Play, Pause, SkipForward, Home, Settings, 
-  Gamepad2, Tv, Power, Volume2 
+  Gamepad2, Tv, Power, Volume2, Speaker
 } from '../icons';
+import M3Slider from '../components/M3Slider';
 
 export default function GenericAndroidTVModal({ 
   show, 
@@ -11,6 +12,7 @@ export default function GenericAndroidTVModal({
   entities, 
   mediaPlayerId, 
   remoteId,
+  linkedMediaPlayers,
   callService, 
   getA, 
   getEntityImageUrl,
@@ -22,13 +24,49 @@ export default function GenericAndroidTVModal({
   const entity = entities[mediaPlayerId];
   if (!entity) return null;
 
+  // Determine priority entity for metadata
+  let displayEntityId = mediaPlayerId;
+  let linkedActive = false;
+  
+  if (linkedMediaPlayers && Array.isArray(linkedMediaPlayers)) {
+    for (const linkedId of linkedMediaPlayers) {
+        const linkedState = entities[linkedId]?.state;
+        if (linkedState === 'playing' || linkedState === 'paused' || linkedState === 'buffering') {
+            displayEntityId = linkedId;
+            linkedActive = true;
+            break; 
+        }
+    }
+  }
+  const displayEntity = entities[displayEntityId];
+
   const state = entity?.state;
   const isOn = state !== 'off' && state !== 'unavailable' && state !== 'unknown';
-  const isPlaying = state === 'playing';
-  const isPaused = state === 'paused';
-  const appName = getA(mediaPlayerId, 'app_name');
-  const title = getA(mediaPlayerId, 'media_title');
-  const picture = getEntityImageUrl(entity?.attributes?.entity_picture);
+  
+  const displayState = displayEntity?.state;
+  const isPlaying = displayState === 'playing';
+  const isPaused = displayState === 'paused';
+  
+  let appName = getA(displayEntityId, 'app_name');
+  let title = getA(displayEntityId, 'media_title');
+
+  if (linkedActive) {
+      const seriesTitle = getA(displayEntityId, 'media_series_title');
+      if (seriesTitle) {
+          title = title; // Episode Title
+          appName = seriesTitle; // Series Name
+      } else {
+          // Movie
+          title = title;
+          if (!appName) {
+             appName = (displayEntityId !== mediaPlayerId ? customNames[displayEntityId] || displayEntity?.attributes?.friendly_name : null);
+          }
+      }
+  } else {
+    appName = appName || (displayEntityId !== mediaPlayerId ? customNames[displayEntityId] || displayEntity?.attributes?.friendly_name : null);
+  }
+
+  const picture = getEntityImageUrl(displayEntity?.attributes?.entity_picture);
   const deviceName = customNames[mediaPlayerId] || entity?.attributes?.friendly_name || 'Android TV';
 
   // Status Logic
@@ -47,7 +85,8 @@ export default function GenericAndroidTVModal({
   };
 
   const controlMedia = (action) => {
-    callService('media_player', action, { entity_id: mediaPlayerId });
+    const targetId = (action.includes('media') && displayEntityId !== mediaPlayerId) ? displayEntityId : mediaPlayerId;
+    callService('media_player', action, { entity_id: targetId });
   };
 
   return (
@@ -66,16 +105,18 @@ export default function GenericAndroidTVModal({
           </div>
           <div>
             <h3 className="text-2xl font-light tracking-tight text-[var(--text-primary)] uppercase italic leading-none">{deviceName}</h3>
-            <div className="mt-2 px-3 py-1 rounded-full inline-block transition-all duration-500" style={{ backgroundColor: statusBg, color: statusColor }}>
-              <p className="text-[10px] uppercase font-bold italic tracking-widest">{t('status.statusLabel')}: {state}</p>
-            </div>
+            {!linkedActive && (
+              <div className="mt-2 px-3 py-1 rounded-full inline-block transition-all duration-500" style={{ backgroundColor: statusBg, color: statusColor }}>
+                <p className="text-[10px] uppercase font-bold italic tracking-widest">{t('status.statusLabel')}: {state}</p>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start font-sans">
           
           {/* Left Column (Span 3) - Media Info & Controls */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-6">
             <div className="p-4 rounded-2xl popup-surface flex flex-col gap-4">
                
                {/* Album Art / Info Area */}

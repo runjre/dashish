@@ -1652,6 +1652,7 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
     const settings = cardSettings[settingsKey] || cardSettings[cardId] || {};
     const mediaPlayerId = settings.mediaPlayerId;
     const remoteId = settings.remoteId;
+    const linkedMediaPlayers = settings.linkedMediaPlayers;
     
     if (!mediaPlayerId) return null;
     
@@ -1665,12 +1666,14 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
         entities={entities}
         mediaPlayerId={mediaPlayerId}
         remoteId={remoteId}
+        linkedMediaPlayers={linkedMediaPlayers}
         size={settings.size}
         getA={getA}
         getEntityImageUrl={getEntityImageUrl}
         onOpen={() => setShowAndroidTVModal(cardId)}
         customNames={customNames}
         t={t}
+        callService={haCallService}
       />
     );
   };
@@ -2119,11 +2122,12 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
   const isEditLight = !!editId && (editId.startsWith('light_') || editId.startsWith('light.'));
   const isEditCalendar = !!editId && editId.startsWith('calendar_card_');
   const isEditCost = !!editId && editId.startsWith('cost_card_');
+  const isEditAndroidTV = !!editId && editId.startsWith('androidtv_card_');
   const isEditVacuum = !!editId && editId.startsWith('vacuum.');
   const isEditAutomation = !!editId && editId.startsWith('automation.');
   const isEditCar = !!editId && (editId === 'car' || editId.startsWith('car_card_'));
   const editSettings = isEditCar ? resolveCarSettings(editId, rawEditSettings) : rawEditSettings;
-  const isEditGenericType = (!!editSettings?.type && (editSettings.type === 'entity' || editSettings.type === 'toggle' || editSettings.type === 'sensor')) || isEditVacuum || isEditAutomation || isEditCar;
+  const isEditGenericType = (!!editSettings?.type && (editSettings.type === 'entity' || editSettings.type === 'toggle' || editSettings.type === 'sensor')) || isEditVacuum || isEditAutomation || isEditCar || isEditAndroidTV;
   const isEditSensor = !!editSettings?.type && editSettings.type === 'sensor';
   const isEditWeatherTemp = !!editId && editId.startsWith('weather_temp_');
   const canEditName = !!editId && !isEditWeatherTemp && editId !== 'media_player' && editId !== 'sonos';
@@ -2732,6 +2736,7 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
               entities={entities}
               mediaPlayerId={settings.mediaPlayerId}
               remoteId={settings.remoteId}
+              linkedMediaPlayers={settings.linkedMediaPlayers}
               callService={callService}
               getA={getA}
               getEntityImageUrl={getEntityImageUrl}
@@ -3336,6 +3341,7 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
           isEditCalendar={isEditCalendar}
           isEditCost={isEditCost}
           isEditGenericType={isEditGenericType}
+          isEditAndroidTV={isEditAndroidTV}
           isEditCar={isEditCar}
           isEditSensor={isEditSensor}
           editSettingsKey={editSettingsKey}
