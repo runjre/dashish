@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import ModernDropdown from '../components/ui/ModernDropdown';
 import M3Slider from '../components/ui/M3Slider';
 import { GRADIENT_PRESETS } from '../contexts/ConfigContext';
@@ -30,6 +30,10 @@ import {
   LogIn,
   LogOut,
   Key,
+  UserCircle2,
+  Save,
+  Trash2,
+  Edit2,
 } from '../icons';
 
 export default function ConfigModal({
@@ -90,7 +94,9 @@ export default function ConfigModal({
   getEntityImageUrl,
   callService,
   onClose,
-  onFinishOnboarding
+  onFinishOnboarding,
+  // Profiles & templates
+  profiles,
 }) {
   const [installingIds, setInstallingIds] = useState({});
   const [expandedNotes, setExpandedNotes] = useState({});
@@ -121,6 +127,7 @@ export default function ConfigModal({
     // Appearance and Layout have been moved to Sidebars
     // { key: 'appearance', icon: Palette, label: t('system.tabAppearance') },
     // { key: 'layout', icon: LayoutGrid, label: t('system.tabLayout') },
+    { key: 'profiles', icon: UserCircle2, label: t('system.tabProfiles') },
     { key: 'updates', icon: Download, label: t('updates.title') },
   ];
 
@@ -225,10 +232,24 @@ export default function ConfigModal({
   };
 
   // ─── Connection Tab ───
+  const haUser = profiles?.haUser;
   const renderConnectionTab = () => (
     <div className="space-y-6 font-sans animate-in fade-in slide-in-from-right-4 duration-300">
       {/* Auth Method Toggle */}
       {renderAuthMethodToggle()}
+
+      {/* Logged-in user info */}
+      {connected && haUser && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
+          <UserCircle2 className="w-5 h-5 text-blue-400" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs uppercase font-bold text-gray-500">{t('system.loggedInAs')}</span>
+            <span className="text-sm font-bold text-[var(--text-primary)]">{haUser.name}</span>
+            {haUser.is_owner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/20">{t('system.userRole.owner')}</span>}
+            {haUser.is_admin && !haUser.is_owner && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/20">{t('system.userRole.admin')}</span>}
+          </div>
+        </div>
+      )}
 
       {/* URL — always shown */}
       <div className="space-y-3">
@@ -304,6 +325,201 @@ export default function ConfigModal({
       )}
     </div>
   );
+
+  // ─── Profiles & Templates Tab ───
+  const [profileName, setProfileName] = useState('');
+  const [profileDeviceLabel, setProfileDeviceLabel] = useState('');
+  const [editingProfileId, setEditingProfileId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editLabel, setEditLabel] = useState('');
+
+  const renderProfilesTab = () => {
+    if (!profiles) return null;
+
+    const {
+      profiles: profileList,
+      loading, error: profileError, backendAvailable,
+      saveProfile, editProfile, loadProfile, removeProfile,
+      startBlank,
+      haUser,
+    } = profiles;
+
+    const handleSaveProfile = async () => {
+      const name = profileName.trim();
+      if (!name) return;
+      try {
+        await saveProfile(name, profileDeviceLabel.trim());
+        setProfileName('');
+        setProfileDeviceLabel('');
+      } catch {}
+    };
+
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        {/* Backend status warning */}
+        {!backendAvailable && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+            <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-300">{t('profiles.backendUnavailable')}</p>
+          </div>
+        )}
+
+        {/* Profiles Section (requires HA user) */}
+        <div className="space-y-3">
+          <h3 className="text-xs uppercase font-bold text-gray-500 ml-1 tracking-wider">{t('profiles.sectionProfiles')}</h3>
+          {!haUser ? (
+            <div className="popup-surface p-4">
+              <p className="text-sm text-[var(--text-secondary)]">{t('profiles.notConnected')}</p>
+            </div>
+          ) : !backendAvailable ? null : (
+            <div className="popup-surface p-4 space-y-4">
+              {/* Inline save form */}
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder={t('profiles.namePlaceholder')}
+                  className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 transition-colors"
+                />
+                <input
+                  type="text"
+                  value={profileDeviceLabel}
+                  onChange={(e) => setProfileDeviceLabel(e.target.value)}
+                  placeholder={t('profiles.deviceLabelPlaceholder')}
+                  className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 transition-colors"
+                />
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={loading || !profileName.trim()}
+                  className={`w-full py-2.5 rounded-xl text-white text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
+                    profileName.trim()
+                      ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/20'
+                      : 'bg-blue-500/40 cursor-not-allowed shadow-none'
+                  }`}
+                >
+                  <Save className="w-4 h-4" />
+                  {t('profiles.save')}
+                </button>
+              </div>
+
+              {profileError && (
+                <p className="text-xs text-red-400 font-bold">{profileError}</p>
+              )}
+
+              {/* Profile list */}
+              {profileList.length === 0 ? (
+                <p className="text-sm text-[var(--text-secondary)]">{t('profiles.noProfiles')}</p>
+              ) : (
+                <div className="space-y-2 mt-2">
+                  {profileList.map(profile => (
+                    <div key={profile.id} className="rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] overflow-hidden">
+                      {editingProfileId === profile.id ? (
+                        /* ── Inline edit mode ── */
+                        <div className="p-3 space-y-2">
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder={t('profiles.namePlaceholder')}
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 transition-colors"
+                            autoFocus
+                          />
+                          <input
+                            type="text"
+                            value={editLabel}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            placeholder={t('profiles.deviceLabelPlaceholder')}
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50 transition-colors"
+                          />
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={async () => {
+                                const name = editName.trim();
+                                if (!name) return;
+                                try {
+                                  await editProfile(profile.id, name, editLabel.trim());
+                                  setEditingProfileId(null);
+                                } catch {}
+                              }}
+                              disabled={loading || !editName.trim()}
+                              className={`flex-1 py-2 rounded-lg text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                editName.trim() ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-500/40 cursor-not-allowed'
+                              }`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              {t('profiles.saveEdit')}
+                            </button>
+                            <button
+                              onClick={() => setEditingProfileId(null)}
+                              className="flex-1 py-2 rounded-lg bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] border border-[var(--glass-border)] text-[var(--text-secondary)] text-xs font-bold transition-all"
+                            >
+                              {t('profiles.cancelEdit')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Normal display mode ── */
+                        <div className="flex items-center justify-between gap-3 p-3">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-bold text-sm text-[var(--text-primary)] block truncate">{profile.name}</span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {profile.device_label && (
+                                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] bg-[var(--glass-bg)] px-1.5 py-0.5 rounded">{profile.device_label}</span>
+                              )}
+                              <span className="text-[10px] text-[var(--text-muted)]">{new Date(profile.updated_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => loadProfile(profile)}
+                              className="px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-bold transition-all"
+                            >
+                              {t('profiles.load')}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingProfileId(profile.id);
+                                setEditName(profile.name);
+                                setEditLabel(profile.device_label || '');
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-blue-500/10 text-[var(--text-secondary)] hover:text-blue-400 transition-all"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => { if (confirm(t('profiles.confirmDelete'))) removeProfile(profile.id); }}
+                              className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-400 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Start blank */}
+        <div className="space-y-3 pt-4 border-t border-[var(--glass-border)]">
+          <h3 className="text-xs uppercase font-bold text-gray-500 ml-1 tracking-wider">{t('profiles.sectionReset')}</h3>
+          <div className="popup-surface p-4">
+            <button
+              onClick={() => { if (confirm(t('profiles.confirmBlank'))) startBlank(); }}
+              className="w-full py-2.5 rounded-xl bg-[var(--glass-bg)] hover:bg-red-500/10 border border-[var(--glass-border)] hover:border-red-500/30 text-[var(--text-secondary)] hover:text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {t('profiles.startBlank')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // ─── Appearance Tab (moved to ThemeSidebar) ───
   const _renderAppearanceTab = () => {
@@ -1211,6 +1427,7 @@ export default function ConfigModal({
                 {configTab === 'connection' && renderConnectionTab()}
                 {/* {configTab === 'appearance' && renderAppearanceTab()} */}
                 {/* {configTab === 'layout' && renderLayoutTab()} */}
+                {configTab === 'profiles' && renderProfilesTab()}
                 {configTab === 'updates' && renderUpdatesTab()}
               </div>
 

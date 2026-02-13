@@ -142,4 +142,10 @@ export {
   AlignLeft,
   LogIn,
   LogOut,
+  LayoutTemplate,
+  Upload,
+  Save,
+  FolderDown,
+  UserCircle2,
+  Undo2,
 } from 'lucide-react';

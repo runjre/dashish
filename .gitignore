@@ -22,3 +22,6 @@ coverage/
 *.lcov
 .nyc_output/
 
+# Local SQLite database
+data/
+

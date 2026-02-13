@@ -12,6 +12,8 @@ import { themes } from '../config/themes';
 import { formatDuration } from '../utils';
 import { buildOnboardingSteps, validateUrl } from '../config/onboarding';
 import { prepareNordpoolData } from '../services';
+import { useHomeAssistant } from '../contexts';
+import { useProfiles } from '../hooks/useProfiles';
 
 // Lazy load all modals
 const AddPageModal = lazy(() => import('../modals/AddPageModal'));
@@ -190,6 +192,42 @@ export default function ModalOrchestrator({
 
   const onboardingSteps = buildOnboardingSteps(t);
 
+  // ── Profiles & templates ───────────────────────────────────────────────
+  const { haUser } = useHomeAssistant();
+  const profilesHook = useProfiles({
+    haUser,
+    contextSetters: {
+      // PageContext setters
+      persistConfig,
+      persistCardSettings,
+      setGridColumns,
+      setGridGapH,
+      setGridGapV,
+      setCardBorderRadius,
+      updateHeaderScale,
+      updateHeaderTitle,
+      updateHeaderSettings,
+      updateSectionSpacing,
+      saveStatusPillsConfig,
+      // ConfigContext setters
+      setCurrentTheme,
+      setLanguage,
+      setBgMode,
+      setBgColor,
+      setBgGradient,
+      setBgImage,
+      setCardTransparency,
+      setCardBorderOpacity,
+      setInactivityTimeout,
+    },
+  });
+
+  // Combine hook output with haUser for easy passing to ConfigModal
+  const profilesProps = {
+    ...profilesHook,
+    haUser,
+  };
+
   return (
     <>
       {/* ── Config / Onboarding ─────────────────────────────────────────── */}
@@ -254,6 +292,7 @@ export default function ModalOrchestrator({
             callService={callService}
             onClose={() => setShowConfigModal(false)}
             onFinishOnboarding={() => { setShowOnboarding(false); setShowConfigModal(false); }}
+            profiles={profilesProps}
           />
         </ModalSuspense>
       )}

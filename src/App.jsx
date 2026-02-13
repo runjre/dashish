@@ -3,6 +3,7 @@ import { en, nn } from './i18n';
 import {
   LayoutGrid,
   Plus,
+  UserCircle2,
 } from './icons';
 
 
@@ -592,7 +593,7 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
              <h2 className="text-3xl font-light mb-3 text-[var(--text-primary)] uppercase tracking-tight">{t('welcome.title')}</h2>
              <p className="text-lg text-[var(--text-secondary)] mb-8 max-w-md leading-relaxed">{t('welcome.subtitle')}</p>
              
-             <div className="flex gap-4">
+             <div className="flex flex-col sm:flex-row gap-3">
                   <button 
                     onClick={() => setShowAddCardModal(true)} 
                     className="flex items-center gap-3 px-8 py-4 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl shadow-lg shadow-blue-500/20 transition-all duration-200 font-bold uppercase tracking-widest text-sm"
@@ -600,12 +601,20 @@ function AppContent({ showOnboarding, setShowOnboarding }) {
                      <Plus className="w-5 h-5" />
                      {t('welcome.addCard')}
                   </button>
-             </div>
-
-             <div className="mt-12 max-w-xs mx-auto p-4 rounded-2xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
-                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
-                   {t('welcome.editHint')}
-                </p>
+                  {(() => {
+                    const allPages = pagesConfig.pages || [];
+                    const totalCards = allPages.reduce((sum, p) => sum + (pagesConfig[p] || []).length, 0) + (pagesConfig.header || []).length;
+                    if (totalCards > 0) return null;
+                    return (
+                      <button
+                        onClick={() => { setConfigTab('profiles'); setShowConfigModal(true); }}
+                        className="flex items-center gap-3 px-8 py-4 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] border border-[var(--glass-border)] active:scale-95 text-[var(--text-primary)] rounded-2xl shadow-lg transition-all duration-200 font-bold uppercase tracking-widest text-sm"
+                      >
+                        <UserCircle2 className="w-5 h-5" />
+                        {t('welcome.restoreProfile')}
+                      </button>
+                    );
+                  })()}
              </div>
           </div>
         ) : (

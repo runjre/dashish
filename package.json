@@ -10,6 +10,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node server/index.js",
+    "dev:all": "concurrently \"vite\" \"node server/index.js\"",
+    "server": "node server/index.js",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.js",
     "preview": "vite preview",
@@ -23,6 +26,8 @@
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.0",
     "home-assistant-js-websocket": "^9.6.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.263.1",
@@ -46,6 +51,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "vite": "^7.3.1",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "concurrently": "^9.0.0"
   }
 }

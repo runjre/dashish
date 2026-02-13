@@ -17,6 +17,8 @@ export {
   Plug, Puzzle, Rocket, Router, Siren, Sprout, Sunrise, Sunset, Truck, Wrench,
   ToggleLeft, ToggleRight, Maximize2, Minimize2, Type, AlignLeft,
   LogIn, LogOut,
+  LayoutTemplate, Upload, Save, FolderDown, UserCircle2,
+  Undo2,
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent } from './iconMap';
