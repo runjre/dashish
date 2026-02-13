@@ -130,7 +130,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
     }
 
     async function connectWithIngress(url) {
-      const auth = createIngressAuth(url);
+      const auth = createIngressAuth(url, config.token);
       try {
         const connInstance = await createConnection({ auth });
         

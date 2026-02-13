@@ -7,14 +7,14 @@
  * Ingress handles authentication via the HA session cookie,
  * so no explicit token is needed.
  */
-export function createIngressAuth(url) {
+export function createIngressAuth(url, token = '') {
   const wsUrl = url.replace(/^http/, 'ws').replace(/\/$/, '') + '/api/websocket';
   return {
     data: { hassUrl: url, expires: -1 },
     wsUrl,
-    accessToken: '',
+    accessToken: token,
     expired: false,
-    refreshAccessToken: () => Promise.resolve(''),
+    refreshAccessToken: () => Promise.resolve(token),
   };
 }
 
