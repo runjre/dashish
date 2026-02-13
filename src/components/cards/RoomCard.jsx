@@ -187,7 +187,7 @@ export default function RoomCard({
             onTouchEnd={handleSlideEnd}
             onClick={(e) => e.stopPropagation()}
             className="absolute inset-0 w-full h-full opacity-0 cursor-ns-resize z-20 touch-none"
-            style={{ appearance: 'slider-vertical' }}
+            style={{ writingMode: 'vertical-lr', direction: 'rtl' }}
         />
         
         {/* Icon Overlay */}

@@ -52,7 +52,7 @@ const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) =>
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`relative w-full h-full rounded-[2rem] overflow-hidden ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-ns-resize touch-none'} ${CONTROL_STYLE}`}
+      className={`relative w-full h-full rounded-2xl overflow-hidden ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-ns-resize touch-none'} ${CONTROL_STYLE}`}
     >
       {/* The Blind (Fills from top) */}
       <div
@@ -75,7 +75,7 @@ const BlindSlider = ({ position, onChange, onCommit, accent, isUnavailable }) =>
       
       {/* Handle (Outside, fixed to bottom of blind) */}
       <div 
-        className="absolute left-4 right-4 h-1.5 rounded-full bg-white/40 shadow-sm pointer-events-none transition-all duration-100 ease-out"
+        className="absolute left-3 right-3 h-1.5 rounded-full bg-white/40 shadow-sm pointer-events-none transition-all duration-100 ease-out"
         style={{ top: `calc(${closedPct}% - ${closedPct * 0.06}px)` }}
       />
     </div>
@@ -131,7 +131,7 @@ const HorizontalBlindSlider = ({ position, onChange, onCommit, accent, isUnavail
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`relative w-full h-full rounded-2xl overflow-hidden ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-ew-resize touch-none'} ${CONTROL_STYLE}`}
+      className={`relative w-full h-full rounded-xl overflow-hidden ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-ew-resize touch-none'} ${CONTROL_STYLE}`}
     >
         {/* Fill from left */}
         <div 
@@ -441,7 +441,7 @@ const CoverCard = ({
       </div>
 
       {/* RIGHT COLUMN: Control */}
-      <div className="w-20 pl-2 relative z-0 flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-14 pl-3 relative z-0 flex flex-col" onClick={(e) => e.stopPropagation()}>
          {mode === 'slider' && supportsPosition ? (
             <BlindSlider 
                position={localPos} 

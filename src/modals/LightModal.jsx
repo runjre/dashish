@@ -228,7 +228,7 @@ export default function LightModal({
                                 max={255} 
                                 step={1} 
                                 value={optimisticLightBrightness[lightId] ?? (getA(lightId, "brightness") || 0)} 
-                                disabled={!isOn || isUnavailable} 
+                                disabled={isUnavailable} 
                                 onChange={(e) => { 
                                   const val = parseInt(e.target.value); 
                                   setOptimisticLightBrightness(prev => ({ ...prev, [lightId]: val })); 
@@ -255,7 +255,7 @@ export default function LightModal({
                               max={maxKelvin}
                               step={50}
                               value={localKelvin}
-                              disabled={!isOn || isUnavailable}
+                              disabled={isUnavailable}
                               onPointerDown={() => isDraggingRef.current = true}
                               onPointerUp={() => isDraggingRef.current = false}
                               onChange={handleTempChange}
@@ -293,7 +293,7 @@ export default function LightModal({
                               max={360}
                               step={1}
                               value={localHue}
-                              disabled={!isOn || isUnavailable}
+                              disabled={isUnavailable}
                               onPointerDown={() => isDraggingRef.current = true}
                               onPointerUp={() => isDraggingRef.current = false}
                               onChange={handleHueChange}
@@ -349,7 +349,7 @@ export default function LightModal({
                                       max="255"
                                       step="1"
                                       value={subBrightness}
-                                      disabled={!subIsOn || subUnavail}
+                                      disabled={subUnavail}
                                       onChange={(e) => {
                                           const val = parseInt(e.target.value); 
                                           setOptimisticLightBrightness(prev => ({ ...prev, [cid]: val })); 
