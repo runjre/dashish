@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-beta.8] — 2026-02-13
+
+### Added
+- Server-side profile storage with Express + SQLite backend
+- Profiles tab in System modal: save, edit, load, delete dashboard profiles
+- Start Blank Dashboard option with confirm dialog
+- Logged-in HA user display in System connection tab
+- Welcome screen shortcut to load a saved profile
+
+### Changed
+- Throttled entity updates for better render performance
+- Light slider now works when light is off (sends turn_on with brightness)
+- Refactored slider components: interaction when off, deprecation fixes
+
+### Fixed
+- Media player card registry signature mismatch
+- SensorCard hook ordering
+- Missing Plus icon import in App.jsx
+- Various code review fixes (#3–#10)
+
 ## [1.0.0-beta.7] — 2026-02-13
 
 ### Added
