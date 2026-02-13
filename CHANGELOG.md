@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-beta.9] — 2026-02-14
+
+### Added
+- **Home Assistant Add-on support** with Ingress integration
+- Add-on Dockerfile, config.yaml, build.json, run.sh, DOCS.md, CHANGELOG.md
+- Repository manifest (repository.yaml) for HA add-on store
+- Ingress URL auto-detection in ConfigContext (token-only onboarding for add-on users)
+- X-Ingress-Path stripping middleware in Express server
+- HashRouter for correct asset loading behind Ingress proxy
+- Provider key remount to ensure fresh credentials after onboarding
+- URL hash ↔ activePage sync for deep linking
+
+### Changed
+- Vite `base` set to `./` for relative asset paths
+- `profileApi.js` uses relative `./api` base for Ingress compatibility
+- ConfigModal hides URL/OAuth fields in Ingress mode
+- `haClient.js` strips trailing `/api` to prevent double `/api/api/websocket`
+- Docker default port changed from 3002 → 80 (mapped as 5173:80)
+- REST history fetch allows optional token (Ingress uses session cookie)
+
+### Removed
+- Unused `createIngressAuth` helper
+- `SKIP_POSTBUILD` guard in postbuild.js (Docker-not-found handled gracefully)
+- Native build tool dependencies (python3, make, g++) from main Dockerfile
+
 ## [1.0.0-beta.8] — 2026-02-13
 
 ### Added
