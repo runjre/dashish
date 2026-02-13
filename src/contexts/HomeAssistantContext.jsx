@@ -67,13 +67,14 @@ export const HomeAssistantProvider = ({ children, config }) => {
       return;
     }
 
-    // For token mode, require token (unless Ingress — session cookie handles auth)
-    if (!config.isIngress && !isOAuth && !hasToken) {
+    // For token mode, require token
+    if (!isOAuth && !hasToken) {
       if (connected) setConnected(false);
       return;
     }
     // For oauth mode, require stored tokens OR an active callback in the URL
-    if (isOAuth && !hasOAuth && !isOAuthCallback) {
+    // (Ingress uses OAuth — user already has an active HA session, skip token check)
+    if (isOAuth && !hasOAuth && !isOAuthCallback && !config.isIngress) {
       if (connected) setConnected(false);
       return;
     }
@@ -108,9 +109,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
     };
 
     async function connectWithToken(url) {
-      const auth = config.isIngress
-        ? createIngressAuth(url)
-        : createLongLivedTokenAuth(url, config.token);
+      const auth = createLongLivedTokenAuth(url, config.token);
       const connInstance = await createConnection({ auth });
       if (cancelled) { 
         connInstance.close(); 
@@ -161,9 +160,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
 
     async function connect() {
       try {
-        if (config.isIngress) {
-          await connectWithToken(config.url);
-        } else if (isOAuth) {
+        if (isOAuth || config.isIngress) {
           await connectWithOAuth(config.url);
         } else {
           await connectWithToken(config.url);

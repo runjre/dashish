@@ -99,15 +99,16 @@ export const ConfigProvider = ({ children }) => {
 
   const [config, setConfig] = useState(() => {
     if (typeof window !== 'undefined') {
-      // Ingress auto-detection: extract base URL from /api/hassio_ingress/<token>
+      // Ingress auto-detection: if served under /api/hassio_ingress/<token>,
+      // connect to HA's root URL via OAuth (user already has an active HA session)
       const path = window.location.pathname;
       const ingressMatch = path.match(/(.*\/api\/hassio_ingress\/[^/]+)/);
       if (ingressMatch && ingressMatch[1]) {
         return {
-          url: window.location.origin + ingressMatch[1],
+          url: window.location.origin,
           fallbackUrl: '',
           token: '',
-          authMethod: 'token',
+          authMethod: 'oauth',
           isIngress: true,
         };
       }
