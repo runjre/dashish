@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { en, nn } from './i18n';
 import {
   LayoutGrid,
+  Plus,
 } from './icons';
 
 
