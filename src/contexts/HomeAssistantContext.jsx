@@ -163,9 +163,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
 
     async function connect() {
       try {
-        if (config.token) {
-          await connectWithToken(config.url);
-        } else if (isOAuth) {
+        if (isOAuth) {
           await connectWithOAuth(config.url);
         } else {
           await connectWithToken(config.url);
