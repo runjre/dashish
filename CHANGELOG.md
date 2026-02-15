@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-beta.16] — 2026-02-15
+
+### Fixed
+- Room card visibility toggles now correctly control lights, temperature, motion, humidity, and climate sections.
+- Authentication now persists after closing/reopening the web app for both OAuth and long-lived token modes.
+
+### Changed
+- Optimized MDI icon loading by moving icon path lookup behind the backend API to reduce browser bundle weight.
+- Improved edit-toolbar UX labels/icons and aligned translated connection/system labels across the UI.
+
+
 ## [1.0.0-beta.15] — 2026-02-15
 
 ### Fixed

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.13
+
+- Includes dashboard release `1.0.0-beta.16`.
+- Fixes session persistence so users do not need to reauthenticate after reopening the dashboard.
+- Includes Room card visibility toggle fixes and reduced frontend icon bundle impact.
+
 ## 1.0.12
 
 - Includes dashboard release `1.0.0-beta.15` with profile-load hardening for page navigation state.
