@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.11
+
+- Includes dashboard release `1.0.0-beta.14` with Home Assistant camera cards and popup stream/snapshot modal.
+- Updated i18n coverage for camera card workflows to keep add-on UI translations consistent.
+
 ## 1.0.10
 
 - Release metadata sync.

@@ -19,7 +19,7 @@ real-time entity updates, and drag-and-drop customisation.
 - **Real-time updates** via Home Assistant WebSocket API.
 - **Drag-and-drop** card layout with multiple pages.
 - **Glassmorphism** UI with multiple themes.
-- Cards for lights, climate, sensors, media, calendars, vacuums, covers, and more.
+- Cards for lights, climate, sensors, media, calendars, vacuums, covers, cameras, and more.
 - Energy graphs, Nordpool pricing, weather forecasts.
 - Works on desktop, tablet, and mobile.
 

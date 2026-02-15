@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-beta.14] — 2026-02-15
+
+### Added
+- Home Assistant camera cards with live preview tiles and a dedicated popup stream/snapshot modal.
+- Camera card type support in Add Card flow, renderer dispatch, modal orchestration, and card settings persistence.
+
+### Changed
+- Updated translations for camera-card labels and modal actions across English, Nynorsk, Bokmål, and Swedish.
+- Expanded card utility coverage for camera card removability/visibility handling.
+
+
 ## [1.0.0-beta.13] — 2026-02-14
 
 ### Changed
