@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Zap, ToggleLeft, ToggleRight } from '../icons';
 import InteractivePowerGraph from '../components/charts/InteractivePowerGraph';
+import { useHomeAssistant } from '../contexts/HomeAssistantContext';
 
 /**
  * NordpoolModal - Modal for displaying Nordpool price information and graph
@@ -35,7 +36,9 @@ export default function NordpoolModal({
 }) {
   if (!show) return null;
 
+  const { haConfig } = useHomeAssistant();
   const translate = t || ((key) => key);
+  const currency = settings?.currency || haConfig?.currency || 'kr';
   const [showWithSupport, setShowWithSupport] = useState(settings?.showWithSupport ?? false);
   
   // Sync with settings when they change
@@ -131,6 +134,7 @@ export default function NordpoolModal({
                     priceStats={displayPriceStats}
                     t={translate}
                     language={language}
+                    unit={currency}
                   />
                 </div>
               )}
@@ -144,7 +148,7 @@ export default function NordpoolModal({
                         <p className="text-xs text-blue-400 uppercase font-bold tracking-[0.2em]">{translate('power.avg')}</p>
                         <div className="flex items-baseline gap-2">
                            <span className="text-6xl font-light italic text-blue-400 leading-none">{displayPriceStats.avg.toFixed(2)}</span>
-                           <span className="text-xl text-gray-500 font-medium">{translate('power.ore')}</span>
+                           <span className="text-xl text-gray-500 font-medium">{currency}</span>
                         </div>
                      </div>
 

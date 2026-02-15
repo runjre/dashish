@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 
-export default function InteractivePowerGraph({ data, currentIndex, t, locale }) {
+export default function InteractivePowerGraph({ data, currentIndex, t, locale, unit }) {
   const translate = t || ((key) => key);
+  const currency = unit || translate('power.ore');
   const timeLocale = locale || 'en-GB';
   const [hoverIndex, setHoverIndex] = useState(null);
   const svgRef = useRef(null);
@@ -78,7 +79,7 @@ export default function InteractivePowerGraph({ data, currentIndex, t, locale })
     <div className="w-full">
       <div className="flex justify-between items-end mb-4 px-2">
         <div><p className="text-[10px] tracking-widest text-gray-500 uppercase font-bold mb-0.5">{translate('power.time')}</p><p className="text-xl font-medium text-[var(--text-primary)]">{hoverPointData.time}</p></div>
-        <div className="text-right"><p className="text-[10px] tracking-widest uppercase font-bold mb-0.5" style={{color: getDotColor(hoverPointData.val)}}>{translate('power.price')}</p><p className="text-3xl font-light text-[var(--text-primary)] italic leading-none tracking-tighter">{hoverPointData.val.toFixed(2)} <span className="text-sm text-gray-600 not-italic ml-1">{translate('power.ore')}</span></p></div>
+        <div className="text-right"><p className="text-[10px] tracking-widest uppercase font-bold mb-0.5" style={{color: getDotColor(hoverPointData.val)}}>{translate('power.price')}</p><p className="text-3xl font-light text-[var(--text-primary)] italic leading-none tracking-tighter">{hoverPointData.val.toFixed(2)} <span className="text-sm text-gray-600 not-italic ml-1">{currency}</span></p></div>
       </div>
       <div className="relative h-60 w-full" onMouseLeave={() => setHoverIndex(null)}>
         <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-600 font-bold py-1 pointer-events-none"><span>{max.toFixed(0)}</span><span>{min.toFixed(0)}</span></div>

@@ -1,6 +1,7 @@
 import SparkLine from '../charts/SparkLine';
 import { Zap } from '../../icons';
 import { getIconComponent } from '../../icons';
+import { useHomeAssistant } from '../../contexts/HomeAssistantContext';
 
 export default function GenericNordpoolCard({
   cardId,
@@ -15,7 +16,9 @@ export default function GenericNordpoolCard({
   t,
   settings = {},
 }) {
+  const { haConfig } = useHomeAssistant();
   const translate = t || ((key) => key);
+  const currency = settings?.currency || haConfig?.currency || 'kr';
 
   if (!entity) return null;
 
@@ -129,7 +132,7 @@ export default function GenericNordpoolCard({
             </div>
             <div className="flex items-baseline gap-1 leading-none">
                 <span className="text-xl font-bold text-[var(--text-primary)]">{priceDisplay}</span>
-                <span className="text-xs font-medium text-[var(--text-muted)]">{translate('power.ore')}</span>
+                <span className="text-xs font-medium text-[var(--text-muted)]">{currency}</span>
             </div>
           </div>
         </div>
@@ -165,7 +168,7 @@ export default function GenericNordpoolCard({
           </p>
           <div className="flex items-baseline gap-1 leading-none">
             <span className="text-4xl font-medium text-[var(--text-primary)] leading-none">{String(priceDisplay)}</span>
-            <span className="text-[var(--text-muted)] font-medium text-base ml-1">{translate('power.ore')}</span>
+            <span className="text-[var(--text-muted)] font-medium text-base ml-1">{currency}</span>
           </div>
         </div>
       </div>

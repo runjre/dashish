@@ -861,6 +861,54 @@ export default function EditCardModal({
             );
           })()}
 
+          {isEditNordpool && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs uppercase font-bold text-gray-500 ml-1">{t('cost.currency') || 'Currency'}</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 text-[var(--text-primary)] rounded-2xl popup-surface focus:border-blue-500/50 outline-none transition-colors"
+                    defaultValue={editSettings.currency || ''}
+                    onBlur={(e) => saveCardSetting(editSettingsKey, 'currency', e.target.value.trim() || null)}
+                    placeholder={t('cost.currencyPlaceholder') || 'Auto (from HA)'}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs uppercase font-bold text-gray-500 ml-4 pb-1 block">{t('nordpool.withSupport') || 'Electricity Support'}</label>
+                <div className="popup-surface rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{t('nordpool.withSupport') || 'Show electricity support'}</span>
+                  <button
+                    onClick={() => saveCardSetting(editSettingsKey, 'showWithSupport', !editSettings.showWithSupport)}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${editSettings.showWithSupport ? 'bg-blue-500' : 'bg-gray-600'}`}
+                  >
+                    <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${editSettings.showWithSupport ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs uppercase font-bold text-gray-500 ml-4">{t('addCard.nordpoolDecimals') || 'Decimals'}</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={0}
+                    max={4}
+                    step={1}
+                    value={editSettings.decimals ?? 2}
+                    onChange={(e) => saveCardSetting(editSettingsKey, 'decimals', parseInt(e.target.value, 10))}
+                    className="flex-1"
+                  />
+                  <div className="min-w-[48px] text-center text-sm font-bold uppercase tracking-widest text-[var(--text-secondary)] popup-surface px-3 py-2 rounded-xl">
+                    {editSettings.decimals ?? 2}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isEditCost && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
