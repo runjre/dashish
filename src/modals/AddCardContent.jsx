@@ -343,14 +343,14 @@ export default function AddCardContent({
                 key={v.key}
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setSelectedSpacerVariant(v.key); }}
-                className={`w-full text-left p-4 rounded-2xl transition-colors border flex items-center gap-3 ${isActive ? 'bg-blue-500/20 border-blue-500/40' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] hover:border-blue-500/30'}`}
+                className={`w-full text-left p-3 rounded-2xl transition-colors flex items-center justify-between group border ${isActive ? 'bg-blue-500/20 border-blue-500/50' : 'popup-surface popup-surface-hover border-transparent'}`}
               >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isActive ? 'border-blue-500 bg-blue-500' : 'border-gray-500'}`}>
-                  {isActive && <Check className="w-3 h-3 text-white" />}
+                <div className="flex flex-col overflow-hidden mr-4">
+                  <span className={`text-sm font-bold transition-colors truncate ${isActive ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'}`}>{v.label}</span>
+                  <p className={`text-[11px] font-medium truncate ${isActive ? 'text-blue-200' : 'text-[var(--text-muted)] group-hover:text-gray-400'}`}>{v.desc}</p>
                 </div>
-                <div>
-                  <span className={`text-sm font-bold ${isActive ? 'text-blue-400' : 'text-[var(--text-secondary)]'}`}>{v.label}</span>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{v.desc}</p>
+                <div className={`p-2 rounded-full transition-colors flex-shrink-0 ${isActive ? 'bg-blue-500 text-white' : 'bg-[var(--glass-bg)] text-gray-500 group-hover:bg-green-500/20 group-hover:text-green-400'}`}>
+                  {isActive ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                 </div>
               </button>
             );
@@ -358,9 +358,9 @@ export default function AddCardContent({
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onAddSelected(); }}
-          className="w-full py-3 rounded-2xl bg-blue-500 text-white font-bold uppercase tracking-widest hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-2xl bg-blue-500 text-white font-bold uppercase tracking-widest hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
         >
-          <Plus className="w-4 h-4" /> {getLabel('addCard.add', 'Add')}
+          {getLabel('addCard.add', 'Add')}
         </button>
       </div>
     );
