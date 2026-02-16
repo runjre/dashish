@@ -266,6 +266,8 @@
   "form.movePageDown": "Flytt ned",
   "form.movePageUp": "Flytt opp",
   "form.name": "Namn",
+  "form.gridColumnsPage": "Kolonner for denne sida",
+  "form.gridColumnsPageHint": "Set antal kolonner berre for denne sida. La stå tom for å bruka global innstilling.",
   "form.noIconsFound": "Ingen ikon funne",
   "form.noResults": "Ingen resultat",
   "form.pageOrder": "Rekkefølgje",

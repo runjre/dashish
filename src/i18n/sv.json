@@ -265,6 +265,8 @@
   "form.hidePage": "Dölj sida",
   "form.movePageDown": "Flytta ner",
   "form.movePageUp": "Flytta upp",
+  "form.gridColumnsPage": "Kolumner för denna sida",
+  "form.gridColumnsPageHint": "Ange antal kolumner endast för denna sida. Lämna tomt för att använda global inställning.",
   "form.name": "Namn",
   "form.noIconsFound": "Inga ikoner hittades",
   "form.noResults": "Inga resultat",

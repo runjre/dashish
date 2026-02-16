@@ -266,6 +266,8 @@
   "form.movePageDown": "Move down",
   "form.movePageUp": "Move up",
   "form.name": "Name",
+  "form.gridColumnsPage": "Columns for this page",
+  "form.gridColumnsPageHint": "Set number of columns only for this page. Leave unset to use global setting.",
   "form.noIconsFound": "No icons found",
   "form.noResults": "No results",
   "form.pageOrder": "Order",
