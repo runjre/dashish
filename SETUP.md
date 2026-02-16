@@ -118,3 +118,25 @@ Dashboard layout is stored in `localStorage`. Profiles are stored server-side in
 | Connection error | Check HA URL and token. Verify CORS if using external access |
 | Profiles not saving | Check that the backend is running (`/api/health`) |
 
+## Release Workflow (Maintainers)
+
+1. Prepare synchronized versions/changelogs:
+
+```bash
+npm run release:prep -- --app-version 1.0.0-beta.18 --addon-version 1.0.15
+```
+
+2. Validate metadata consistency:
+
+```bash
+npm run release:check
+```
+
+3. Run full release sanity checks:
+
+```bash
+npm run release
+```
+
+The `release:check` step is also enforced in CI on `main` PRs/pushes.
+
