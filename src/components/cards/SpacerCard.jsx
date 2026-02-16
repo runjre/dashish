@@ -28,7 +28,7 @@ const SpacerCard = ({
   return (
     <div
       {...dragProps}
-      className={`relative rounded-3xl flex items-center justify-center h-full min-h-[2rem] transition-all duration-300 ${editClass} ${className}`}
+      className={`relative rounded-3xl flex items-center justify-center h-full transition-all duration-300 ${editClass} ${className}`}
       style={editMode ? cardStyle : { ...cardStyle, backgroundColor: 'transparent', borderColor: 'transparent' }}
     >
       {controls}

@@ -14,9 +14,10 @@
  */
 // Size-to-span mappings per card type category
 const SPAN_TABLE = {
-  // { small, medium, large } → column count
+  // { small, medium, large } → row span
   triSize:  { small: 1, medium: 2, default: 4 },   // calendar, todo
   dualSize: { small: 1, default: 2 },               // light, car, room
+  fixedOne: { default: 1 },                         // spacer (height via CSS)
 };
 
 const CARD_SPAN_RULES = [
@@ -27,7 +28,7 @@ const CARD_SPAN_RULES = [
   { prefix: 'light.',         category: 'dualSize' },
   { prefix: 'car_card_',      category: 'dualSize' },
   { prefix: 'room_card_',     category: 'dualSize' },
-  { prefix: 'spacer_card_',   category: 'dualSize' },
+  { prefix: 'spacer_card_',   category: 'fixedOne' },
 ];
 
 export const getCardGridSpan = (cardId, getCardSettingsKey, cardSettings, activePage) => {

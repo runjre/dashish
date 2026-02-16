@@ -105,23 +105,31 @@ export default function DashboardGrid({
           const settingsKey = getCardSettingsKey(id);
           const heading = cardSettings[settingsKey]?.heading;
           const colSpan = placement?.colSpan || 1;
+          const isSpacerCard = id.startsWith('spacer_card_');
+          const spacerVariant = isSpacerCard ? (cardSettings[settingsKey]?.variant || 'spacer') : null;
 
           if (!editMode && (hiddenCards.includes(id) || isCardHiddenByLogic(id))) return null;
 
           const cardContent = renderCard(id, index);
           if (!cardContent) return null;
 
+          const gapPx = isMobile ? 12 : gridGapV;
+          const spacerHeight = isSpacerCard
+            ? (spacerVariant === 'title' ? 32 : gapPx)
+            : undefined;
+
           return (
             <div
               key={id}
-              className={`h-full relative ${(isCompactCards || isMobile) ? 'card-compact' : ''}`}
+              className={`relative ${isSpacerCard ? '' : 'h-full'} ${(isCompactCards || isMobile) ? 'card-compact' : ''}`}
               style={{
                 gridRowStart: placement.row,
                 gridColumnStart: placement.col,
                 gridRowEnd: `span ${forcedSpan}`,
                 gridColumnEnd: colSpan > 1 ? `span ${colSpan}` : undefined,
+                height: spacerHeight != null ? `${spacerHeight}px` : undefined,
                 minHeight: isLargeCard && sizeSetting !== 'small' && sizeSetting !== 'medium'
-                  ? `${(4 * 100) + (3 * (isMobile ? 12 : gridGapV))}px`
+                  ? `${(4 * 100) + (3 * gapPx)}px`
                   : undefined,
               }}
             >
