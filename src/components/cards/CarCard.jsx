@@ -50,7 +50,8 @@ const CarCard = ({
     chargingId,
     pluggedId,
     climateId,
-    tempId
+    tempId,
+    imageUrl
   } = settings;
 
   const batteryValue = getNumberState(entities, batteryId);
@@ -133,6 +134,14 @@ const CarCard = ({
             </p>
           )}
         </div>
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-20 w-auto max-w-[45%] object-contain opacity-80 pointer-events-none select-none drop-shadow-lg"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        )}
       </div>
     </div>
   );
