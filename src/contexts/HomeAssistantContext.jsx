@@ -159,7 +159,7 @@ export const HomeAssistantProvider = ({ children, config }) => {
     /** Fetch the HA system config (currency, units, etc.) */
     async function fetchHaConfig(connInstance) {
       try {
-        const conf = await connInstance.sendMessagePromise({ type: 'config/core' });
+        const conf = await connInstance.sendMessagePromise({ type: 'get_config' });
         if (isCurrentAttempt() && conf) {
           setHaConfig(conf);
         }
