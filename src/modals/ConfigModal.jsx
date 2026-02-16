@@ -578,10 +578,10 @@ export default function ConfigModal({
             <ModernDropdown
               label={t('settings.language')}
               icon={Globe}
-              options={['en', 'nb', 'nn', 'sv']}
+              options={['en', 'nb', 'nn', 'sv', 'de']}
               current={language}
               onChange={setLanguage}
-              map={{ en: t('language.en'), nb: t('language.nb'), nn: t('language.nn'), sv: t('language.sv') }}
+              map={{ en: t('language.en'), nb: t('language.nb'), nn: t('language.nn'), sv: t('language.sv'), de: t('language.de') }}
               placeholder={t('dropdown.noneSelected')}
             />
           </div>
@@ -1340,7 +1340,7 @@ export default function ConfigModal({
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="space-y-4">
                       <p className="text-xs uppercase font-bold text-gray-500 ml-1">{t('settings.language')}</p>
-                      <ModernDropdown label={t('settings.language')} icon={Globe} options={['en', 'nb', 'nn', 'sv']} current={language} onChange={setLanguage} map={{ en: t('language.en'), nb: t('language.nb'), nn: t('language.nn'), sv: t('language.sv') }} placeholder={t('dropdown.noneSelected')} />
+                      <ModernDropdown label={t('settings.language')} icon={Globe} options={['en', 'nb', 'nn', 'sv', 'de']} current={language} onChange={setLanguage} map={{ en: t('language.en'), nb: t('language.nb'), nn: t('language.nn'), sv: t('language.sv'), de: t('language.de') }} placeholder={t('dropdown.noneSelected')} />
                     </div>
                     <div className="space-y-4">
                       <p className="text-xs uppercase font-bold text-gray-500 ml-1">{t('settings.theme')}</p>
