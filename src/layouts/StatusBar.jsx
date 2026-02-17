@@ -38,11 +38,9 @@ export default function StatusBar({
 }) {
   const isSonosEntity = (entity) => {
     if (!entity) return false;
-    const id = entity.entity_id || '';
-    const name = (entity.attributes?.friendly_name || '').toLowerCase();
     const manufacturer = (entity.attributes?.manufacturer || '').toLowerCase();
     const platform = (entity.attributes?.platform || '').toLowerCase();
-    return id.includes('sonos') || name.includes('sonos') || manufacturer.includes('sonos') || platform.includes('sonos');
+    return manufacturer.includes('sonos') || platform.includes('sonos');
   };
 
   const getSonosEntities = () => Object.keys(entities)

@@ -166,6 +166,7 @@ export function useAppComposition({
 
   const dashboardGridMedia = useMemo(() => ({
     entities,
+    conn,
     isSonosActive,
     activeMediaId,
     setActiveMediaId,
@@ -173,7 +174,7 @@ export function useAppComposition({
     getEntityImageUrl,
     callService,
     savePageSetting,
-  }), [entities, isSonosActive, activeMediaId, setActiveMediaId, getA, getEntityImageUrl, callService, savePageSetting]);
+  }), [entities, conn, isSonosActive, activeMediaId, setActiveMediaId, getA, getEntityImageUrl, callService, savePageSetting]);
 
   const dashboardGridGrid = useMemo(() => ({
     gridLayout,

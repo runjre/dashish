@@ -15,12 +15,14 @@ import {
   Volume1,
   Volume2,
   Link,
-  Plus
+  Plus,
+  Heart
 } from '../../icons';
 
 export default function MediaPage({
   pageId,
   entities,
+  conn,
   pageSettings,
   editMode,
   isSonosActive,
@@ -34,6 +36,10 @@ export default function MediaPage({
   t
 }) {
   const [mediaSearch, setMediaSearch] = useState('');
+  const [rightPanelView, setRightPanelView] = useState('players');
+  const [chooseQuery, setChooseQuery] = useState('');
+  const [favoritesByPlayer, setFavoritesByPlayer] = useState({});
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const pageSetting = pageSettings[pageId] || {};
   const allMediaIds = Object.keys(entities).filter(id => id.startsWith('media_player.'));
   const showAll = !Array.isArray(pageSetting.mediaIds);
@@ -43,11 +49,12 @@ export default function MediaPage({
 
   const isSonosEntity = (entity) => {
     if (!entity) return false;
-    const id = entity.entity_id || '';
-    const name = (entity.attributes?.friendly_name || '').toLowerCase();
     const manufacturer = (entity.attributes?.manufacturer || '').toLowerCase();
     const platform = (entity.attributes?.platform || '').toLowerCase();
-    return id.includes('sonos') || name.includes('sonos') || manufacturer.includes('sonos') || platform.includes('sonos');
+    if (manufacturer.includes('sonos') || platform.includes('sonos')) return true;
+    const entityId = (entity.entity_id || '').toLowerCase();
+    const friendlyName = (entity.attributes?.friendly_name || '').toLowerCase();
+    return entityId.includes('sonos') || friendlyName.includes('sonos');
   };
 
   const sonosEntities = mediaEntities.filter(isSonosEntity);
@@ -96,8 +103,198 @@ export default function MediaPage({
   const effectivePosition = Math.min(duration || basePosition, basePosition + elapsed);
 
   const isCurrentSonos = isSonosEntity(currentMp);
-  const rawMembers = isCurrentSonos ? getA(mpId, 'group_members') : null;
+  const rawMembers = getA(mpId, 'group_members');
   const groupMembers = Array.isArray(rawMembers) ? rawMembers : [];
+  const groupedOthers = groupMembers.filter((id) => id !== mpId);
+  const hasGroupedOthers = groupedOthers.length > 0;
+
+  const normalizeChoice = (item, fallbackType) => {
+    if (!item) return null;
+    if (typeof item === 'string') {
+      const value = item.trim();
+      if (!value) return null;
+      return {
+        id: value,
+        label: value,
+        type: fallbackType,
+      };
+    }
+    if (typeof item !== 'object') return null;
+
+    const id = item.media_content_id || item.id || item.uri || item.url || item.value;
+    if (!id || typeof id !== 'string') return null;
+
+    const label = item.title || item.name || item.friendly_name || item.label || id;
+    const type = item.media_content_type || item.type || fallbackType;
+    const source = item.provider || item.source || item.app_name || item.domain || '';
+    const image = item.thumbnail || item.thumb || item.image || item.icon || null;
+    return { id, label: String(label), type: String(type), source, image };
+  };
+
+  const normalizeChoiceArray = (raw, fallbackType) => {
+    const array = Array.isArray(raw) ? raw : [];
+    const deduped = new Map();
+    array.forEach((item) => {
+      const normalized = normalizeChoice(item, fallbackType);
+      if (!normalized) return;
+      const key = `${normalized.type}::${normalized.id}`;
+      if (!deduped.has(key)) deduped.set(key, normalized);
+    });
+    return [...deduped.values()];
+  };
+
+  const attrFavoriteChoices = normalizeChoiceArray(getA(mpId, 'sonos_favorites', []), 'music');
+  const sourceListChoices = normalizeChoiceArray(
+    (Array.isArray(getA(mpId, 'source_list', [])) ? getA(mpId, 'source_list', []) : [])
+      .map((source) => ({ title: source, id: source, media_content_type: 'music' })),
+    'music'
+  );
+  const playlistFallbackChoices = normalizeChoiceArray(getA(mpId, 'sonos_playlists', []), 'playlist');
+  const favoriteChoices = favoritesByPlayer[mpId] || attrFavoriteChoices;
+  const loweredChooseQuery = chooseQuery.trim().toLowerCase();
+  const filteredChooseChoices = loweredChooseQuery
+    ? favoriteChoices.filter((choice) => choice.label.toLowerCase().includes(loweredChooseQuery) || choice.id.toLowerCase().includes(loweredChooseQuery))
+    : favoriteChoices;
+
+  const sonosAllIds = allMediaIds.filter((id) => isSonosEntity(entities[id]));
+  const manageablePlayerIds = sonosAllIds
+    .slice()
+    .sort((a, b) => {
+      const aName = entities[a]?.attributes?.friendly_name || a;
+      const bName = entities[b]?.attributes?.friendly_name || b;
+      return aName.localeCompare(bName);
+    });
+
+  const isPlayerAdded = (id) => (showAll ? allMediaIds.includes(id) : selectedIds.includes(id));
+
+  const removePlayerSelection = (id) => {
+    if (showAll) {
+      const next = allMediaIds.filter(item => item !== id);
+      savePageSetting(pageId, 'mediaIds', next);
+      if (id === mpId && next.length > 0) setActiveMediaId(next[0]);
+      return;
+    }
+
+    const next = selectedIds.filter(item => item !== id);
+    savePageSetting(pageId, 'mediaIds', next);
+    if (id === mpId && next.length > 0) setActiveMediaId(next[0]);
+  };
+
+  const addPlayerSelection = (id) => {
+    if (showAll) return;
+    if (selectedIds.includes(id)) return;
+    savePageSetting(pageId, 'mediaIds', [...selectedIds, id]);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchFavorites = async () => {
+      if (rightPanelView !== 'choose' || !mpId) return;
+      if (favoritesByPlayer[mpId]?.length > 0) return;
+
+      setFavoritesLoading(true);
+      try {
+        if (!conn || typeof conn.sendMessagePromise !== 'function') {
+          if (!cancelled) {
+            setFavoritesByPlayer((prev) => ({
+              ...prev,
+              [mpId]: normalizeChoiceArray([
+                ...attrFavoriteChoices,
+                ...sourceListChoices,
+                ...playlistFallbackChoices,
+              ], 'music')
+            }));
+          }
+          return;
+        }
+
+        const rootResp = await conn.sendMessagePromise({ type: 'media_player/browse_media', entity_id: mpId });
+        const root = rootResp?.result || rootResp || null;
+        const rootChildren = Array.isArray(root?.children) ? root.children : [];
+        const favoritesDir = rootChildren.find((child) => {
+          const type = String(child?.media_content_type || '').toLowerCase();
+          const id = String(child?.media_content_id || '').toLowerCase();
+          const title = String(child?.title || '').toLowerCase();
+          return type === 'favorites' || id === 'favorites' || title.includes('favorite');
+        });
+
+        if (!favoritesDir) {
+          if (!cancelled) {
+            setFavoritesByPlayer((prev) => ({
+              ...prev,
+              [mpId]: normalizeChoiceArray([
+                ...attrFavoriteChoices,
+                ...sourceListChoices,
+                ...playlistFallbackChoices,
+              ], 'music')
+            }));
+          }
+          return;
+        }
+
+        const allFavorites = [];
+        const browseFavDir = async (dir) => {
+          const resp = await conn.sendMessagePromise({
+            type: 'media_player/browse_media',
+            entity_id: mpId,
+            media_content_type: dir.media_content_type,
+            media_content_id: dir.media_content_id,
+          });
+          const detail = resp?.result || resp || null;
+          const children = Array.isArray(detail?.children) ? detail.children : [];
+          for (const child of children) {
+            if (child?.can_play) {
+              allFavorites.push({
+                id: child.media_content_id || child.title,
+                label: child.title || child.media_content_id,
+                type: child.media_content_type || 'music',
+                source: detail?.title || 'Favorites',
+                image: child.thumbnail || null,
+              });
+            } else if (child?.can_expand) {
+              await browseFavDir(child);
+            }
+          }
+        };
+
+        await browseFavDir(favoritesDir);
+        const merged = normalizeChoiceArray([
+          ...allFavorites,
+          ...attrFavoriteChoices,
+          ...sourceListChoices,
+          ...playlistFallbackChoices,
+        ], 'music');
+        if (!cancelled) setFavoritesByPlayer((prev) => ({ ...prev, [mpId]: merged }));
+      } catch {
+        if (!cancelled) {
+          setFavoritesByPlayer((prev) => ({
+            ...prev,
+            [mpId]: normalizeChoiceArray([
+              ...attrFavoriteChoices,
+              ...sourceListChoices,
+              ...playlistFallbackChoices,
+            ], 'music')
+          }));
+        }
+      } finally {
+        if (!cancelled) setFavoritesLoading(false);
+      }
+    };
+
+    fetchFavorites();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    rightPanelView,
+    mpId,
+    conn,
+    favoritesByPlayer,
+    attrFavoriteChoices,
+    sourceListChoices,
+    playlistFallbackChoices,
+  ]);
 
   const listPlayers = mediaEntities
     .slice()
@@ -107,6 +304,18 @@ export default function MediaPage({
       if (aActive !== bActive) return aActive ? -1 : 1;
       return (a.attributes?.friendly_name || '').localeCompare(b.attributes?.friendly_name || '');
     });
+
+  const toggleGroupAll = () => {
+    const allIds = listPlayers.map((player) => player.entity_id);
+    const otherIds = allIds.filter((id) => id !== mpId);
+    if (hasGroupedOthers) {
+      groupedOthers.forEach((id) => callService('media_player', 'unjoin', { entity_id: id }));
+      return;
+    }
+    if (otherIds.length > 0) {
+      callService('media_player', 'join', { entity_id: mpId, group_members: otherIds });
+    }
+  };
 
   return (
     <div key={pageId} className="flex flex-col gap-8 font-sans fade-in-anim items-start">
@@ -201,15 +410,15 @@ export default function MediaPage({
         <div className="flex-1 flex flex-col md:flex-row gap-8 md:gap-12 items-center">
           <div className="flex-shrink-0 flex justify-center md:justify-start">
             {mpPicture ? (
-              <img src={mpPicture} alt="" className="w-64 h-64 md:w-72 md:h-72 object-cover rounded-2xl shadow-2xl" />
+              <img src={mpPicture} alt="" className="w-52 h-52 lg:w-56 lg:h-56 xl:w-72 xl:h-72 object-cover rounded-2xl shadow-2xl" />
             ) : (
-              <div className="w-64 h-64 md:w-72 md:h-72 flex items-center justify-center rounded-2xl bg-[var(--glass-bg)]">
+              <div className="w-52 h-52 lg:w-56 lg:h-56 xl:w-72 xl:h-72 flex items-center justify-center rounded-2xl bg-[var(--glass-bg)]">
                 {isTV ? <Tv className="w-24 h-24 text-gray-700" /> : <Speaker className="w-24 h-24 text-gray-700" />}
               </div>
             )}
           </div>
 
-          <div className="flex-1 w-full flex flex-col justify-center md:justify-between md:h-72 gap-6 min-w-0">
+          <div className="flex-1 w-full flex flex-col justify-center md:justify-between gap-4 lg:gap-5 xl:gap-6 min-w-0">
             <div className="space-y-2 text-center md:text-left">
               {mpName && (
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">
@@ -217,7 +426,7 @@ export default function MediaPage({
                 </p>
               )}
               <h2 className="text-lg md:text-xl font-bold text-[var(--text-primary)] leading-none truncate">{mpTitle || t('common.unknown')}</h2>
-              <p className="text-xl text-[var(--text-secondary)] font-medium truncate">{mpSeries || ''}</p>
+              <p className="text-base lg:text-lg xl:text-xl text-[var(--text-secondary)] font-medium truncate">{mpSeries || ''}</p>
             </div>
 
             <div className="space-y-3">
@@ -229,16 +438,16 @@ export default function MediaPage({
                 <M3Slider variant="thin" min={0} max={duration || 100} step={1} value={effectivePosition || 0} disabled={!duration} onChange={(e) => callService('media_player', 'media_seek', { entity_id: mpId, seek_position: parseFloat(e.target.value) })} colorClass="bg-white" />
               </div>
 
-              <div className="flex items-center justify-between gap-3">
+              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 lg:gap-2 xl:gap-3">
                 <button onClick={() => callService('media_player', 'shuffle_set', { entity_id: mpId, shuffle: !shuffle })} className={`p-2 rounded-full transition-all active:scale-95 ${shuffle ? 'text-blue-400 bg-blue-500/10' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`} title="Shuffle">
                   <Shuffle className="w-4 h-4" />
                 </button>
-                <div className="flex items-center justify-center gap-4">
-                  <button onClick={() => callService('media_player', 'media_previous_track', { entity_id: mpId })} className="p-2 hover:bg-[var(--glass-bg-hover)] rounded-full transition-all active:scale-95"><SkipBack className="w-6 h-6 text-[var(--text-secondary)]" /></button>
-                  <button onClick={() => callService('media_player', 'media_play_pause', { entity_id: mpId })} className="p-3 rounded-full transition-all active:scale-95 shadow-lg hover:shadow-xl hover:scale-105 bg-[var(--text-primary)]">
-                    {isPlaying ? <Pause className="w-7 h-7" color="var(--bg-primary)" fill="var(--bg-primary)" /> : <Play className="w-7 h-7 ml-0.5" color="var(--bg-primary)" fill="var(--bg-primary)" />}
+                <div className="min-w-0 flex items-center justify-center gap-1.5 lg:gap-2 xl:gap-4">
+                  <button onClick={() => callService('media_player', 'media_previous_track', { entity_id: mpId })} className="p-1.5 lg:p-2 hover:bg-[var(--glass-bg-hover)] rounded-full transition-all active:scale-95"><SkipBack className="w-5 h-5 xl:w-6 xl:h-6 text-[var(--text-secondary)]" /></button>
+                  <button onClick={() => callService('media_player', 'media_play_pause', { entity_id: mpId })} className="p-2 lg:p-2.5 xl:p-3 rounded-full transition-all active:scale-95 shadow-lg hover:shadow-xl hover:scale-105 bg-[var(--text-primary)]">
+                    {isPlaying ? <Pause className="w-6 h-6 xl:w-7 xl:h-7" color="var(--bg-primary)" fill="var(--bg-primary)" /> : <Play className="w-6 h-6 xl:w-7 xl:h-7 ml-0.5" color="var(--bg-primary)" fill="var(--bg-primary)" />}
                   </button>
-                  <button onClick={() => callService('media_player', 'media_next_track', { entity_id: mpId })} className="p-2 hover:bg-[var(--glass-bg-hover)] rounded-full transition-all active:scale-95"><SkipForward className="w-6 h-6 text-[var(--text-secondary)]" /></button>
+                  <button onClick={() => callService('media_player', 'media_next_track', { entity_id: mpId })} className="p-1.5 lg:p-2 hover:bg-[var(--glass-bg-hover)] rounded-full transition-all active:scale-95"><SkipForward className="w-5 h-5 xl:w-6 xl:h-6 text-[var(--text-secondary)]" /></button>
                 </div>
                 <button onClick={() => { const modes = ['off', 'one', 'all']; const nextMode = modes[(modes.indexOf(repeat) + 1) % modes.length]; callService('media_player', 'repeat_set', { entity_id: mpId, repeat: nextMode }); }} className={`p-2 rounded-full transition-all active:scale-95 ${repeat !== 'off' ? 'text-blue-400 bg-blue-500/10' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-hover)]'}`} title="Repeat">
                   {repeat === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
@@ -259,27 +468,50 @@ export default function MediaPage({
       {mediaEntities.length > 0 && (
       <div className="rounded-3xl border border-[var(--glass-border)] popup-surface p-6 min-h-[480px] max-h-[480px] flex flex-col w-full min-w-0">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">{t('media.group.selectedPlayers')}</h3>
-          {isCurrentSonos && listPlayers.length > 1 && (
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl popup-surface border border-[var(--glass-border)]">
             <button
-              onClick={() => {
-                const allIds = listPlayers.map(p => p.entity_id);
-                const unjoined = allIds.filter(id => !groupMembers.includes(id));
-                if (unjoined.length > 0) {
-                  callService('media_player', 'join', { entity_id: mpId, group_members: unjoined });
-                } else {
-                  const others = groupMembers.filter(id => id !== mpId);
-                  others.forEach(id => callService('media_player', 'unjoin', { entity_id: id }));
-                }
-              }}
-              className="text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:text-white transition-colors"
+              type="button"
+              onClick={() => setRightPanelView('players')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelView === 'players' ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              style={rightPanelView === 'players' ? { backgroundColor: 'var(--accent-color)' } : undefined}
             >
-              {listPlayers.every(p => groupMembers.includes(p.entity_id)) ? t('sonos.ungroupAll') : t('sonos.groupAll')}
+              {t('media.tab.players')}
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => setRightPanelView('choose')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelView === 'choose' ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              style={rightPanelView === 'choose' ? { backgroundColor: 'var(--accent-color)' } : undefined}
+            >
+              {t('media.tab.media')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightPanelView('manage')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelView === 'manage' ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              style={rightPanelView === 'manage' ? { backgroundColor: 'var(--accent-color)' } : undefined}
+            >
+              {t('media.tab.manage')}
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 overflow-y-auto flex-1 custom-scrollbar">
-          {listPlayers.map((p, idx) => {
+        {rightPanelView === 'players' && (
+          <>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+                {listPlayers.length > 1 && (
+                  <button
+                    onClick={toggleGroupAll}
+                    className="px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 hover:text-white transition-colors"
+                    title={hasGroupedOthers ? t('sonos.ungroupAll') : t('sonos.groupAll')}
+                    aria-label={hasGroupedOthers ? t('sonos.ungroupAll') : t('sonos.groupAll')}
+                  >
+                    <Link className="w-4 h-4" />
+                    <span>{hasGroupedOthers ? t('sonos.ungroupAll') : t('sonos.groupAll')}</span>
+                  </button>
+                )}
+            </div>
+            <div className="flex flex-col gap-4 overflow-y-auto flex-1 custom-scrollbar">
+              {listPlayers.map((p, idx) => {
             const pPic = getEntityImageUrl(p.attributes?.entity_picture);
             const isSelected = p.entity_id === mpId;
             const isMember = groupMembers.includes(p.entity_id);
@@ -300,7 +532,7 @@ export default function MediaPage({
                     <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{pTitle}</p>
                   </div>
                 </button>
-                {!isSelf && isCurrentSonos && isSonos && (
+                {!isSelf && listPlayers.length > 1 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -316,15 +548,118 @@ export default function MediaPage({
                     {isMember ? <Link className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                   </button>
                 )}
-                {isSelf && isCurrentSonos && groupMembers.length > 1 && (
-                  <div className="p-2.5 rounded-full bg-blue-500/20 text-blue-400" title="Linka">
+                {isSelf && listPlayers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleGroupAll();
+                    }}
+                    className="p-2.5 rounded-full bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+                    title={hasGroupedOthers ? t('sonos.ungroupAll') : t('sonos.groupAll')}
+                  >
                     <Link className="w-4 h-4" />
-                  </div>
+                  </button>
                 )}
               </div>
             );
-          })}
-        </div>
+              })}
+            </div>
+          </>
+        )}
+        {rightPanelView === 'choose' && (
+          <div className="flex flex-col gap-3 overflow-y-auto flex-1 custom-scrollbar">
+            <input
+              type="text"
+              value={chooseQuery}
+              onChange={(e) => setChooseQuery(e.target.value)}
+              placeholder="Søk"
+              className="w-full bg-[var(--glass-bg)] rounded-xl px-3 py-2 text-[var(--text-primary)] text-sm outline-none"
+            />
+            <div className="space-y-2">
+              {favoritesLoading && (
+                <div className="text-xs text-[var(--text-muted)] italic text-center py-2">
+                  {t('media.choose.loading')}
+                </div>
+              )}
+              {!favoritesLoading && filteredChooseChoices.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {filteredChooseChoices.map((choice) => (
+                    <button
+                      key={`${choice.type}::${choice.id}`}
+                      type="button"
+                      onClick={() => {
+                        callService('media_player', 'play_media', {
+                          entity_id: mpId,
+                          media_content_id: choice.id,
+                          media_content_type: choice.type || 'music',
+                        });
+                      }}
+                      className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-[var(--glass-bg-hover)] transition-colors group"
+                    >
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-[var(--glass-bg-hover)] flex-shrink-0">
+                        {choice.image ? (
+                          <img src={getEntityImageUrl(choice.image) || choice.image} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Heart className="w-6 h-6 text-[var(--text-secondary)] group-hover:text-[var(--accent-color)] transition-colors" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="w-full text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] text-center line-clamp-2 leading-tight">{choice.label}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!favoritesLoading && filteredChooseChoices.length === 0 && (
+                <div className="text-xs text-[var(--text-muted)] italic text-center py-2">
+                  {t('media.choose.emptyFavorites')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {rightPanelView === 'manage' && (
+          <div className="flex flex-col gap-3 overflow-y-auto flex-1 custom-scrollbar">
+            <div className="space-y-2">
+              {manageablePlayerIds.map((id) => {
+                const entity = entities[id];
+                const isAdded = isPlayerAdded(id);
+                return (
+                  <div key={id} className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[var(--glass-bg-hover)] transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] truncate">{entity?.attributes?.friendly_name || id}</p>
+                      <p className="text-[10px] text-[var(--text-muted)] truncate">{id}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => addPlayerSelection(id)}
+                        disabled={isAdded || showAll}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${isAdded || showAll ? 'bg-[var(--glass-bg)] text-[var(--text-muted)] opacity-50 cursor-not-allowed' : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'}`}
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePlayerSelection(id)}
+                        disabled={!isAdded}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAdded ? 'bg-[var(--glass-bg)] text-[var(--text-muted)] opacity-50 cursor-not-allowed' : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'}`}
+                      >
+                        {t('media.clearSelection') || 'Remove'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {manageablePlayerIds.length === 0 && (
+                <div className="text-xs text-[var(--text-muted)] italic text-center py-2">
+                  {t('media.noAvailableSonosPlayers')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       )}
     </div>

@@ -12,7 +12,7 @@ export default function DashboardGrid({
   t,
 }) {
   const { activePage, pagesConfig, pageSettings, editMode, isMediaPage } = page;
-  const { entities, isSonosActive, activeMediaId, setActiveMediaId, getA, getEntityImageUrl, callService, savePageSetting } = media;
+  const { entities, conn, isSonosActive, activeMediaId, setActiveMediaId, getA, getEntityImageUrl, callService, savePageSetting } = media;
   const { gridLayout, isMobile, gridGapV, gridGapH, gridColCount, isCompactCards } = grid;
   const { cardSettings, getCardSettingsKey, hiddenCards, isCardHiddenByLogic, renderCard } = cards;
   const { setShowAddCardModal, setConfigTab, setShowConfigModal } = actions;
@@ -23,6 +23,7 @@ export default function DashboardGrid({
         <MediaPage
           pageId={activePage}
           entities={entities}
+          conn={conn}
           pageSettings={pageSettings}
           editMode={editMode}
           isSonosActive={isSonosActive}

@@ -232,6 +232,7 @@ export default function EditCardModal({
   canEditIcon, 
   canEditStatus, 
   isEditSensor,
+  isEditMedia,
   isEditCalendar,
   isEditTodo,
   isEditCost,
@@ -1059,6 +1060,33 @@ export default function EditCardModal({
               </div>
              );
           })()}
+
+          {isEditMedia && editSettingsKey && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs uppercase font-bold text-gray-500 ml-1">{t('media.artworkMode') || 'Artwork Mode'}</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => saveCardSetting(editSettingsKey, 'artworkMode', 'default')}
+                    className={`flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${!editSettings.artworkMode || editSettings.artworkMode === 'default' ? 'bg-blue-500 text-white border-blue-500' : 'popup-surface popup-surface-hover text-[var(--text-secondary)] border-transparent'}`}
+                  >
+                    {t('media.artwork.default') || 'Default'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => saveCardSetting(editSettingsKey, 'artworkMode', 'cover')}
+                    className={`flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${editSettings.artworkMode === 'cover' ? 'bg-blue-500 text-white border-blue-500' : 'popup-surface popup-surface-hover text-[var(--text-secondary)] border-transparent'}`}
+                  >
+                    {t('media.artwork.cover') || 'Cover'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] ml-1">
+                  {editSettings.artworkMode === 'cover' ? (t('media.artwork.coverHint') || 'Full card artwork cover') : (t('media.artwork.defaultHint') || 'Standard icon & background')}
+                </p>
+              </div>
+            </div>
+          )}
 
           {isEditRoom && editSettingsKey && (() => {
             const [refreshing, setRefreshing] = React.useState(false);
