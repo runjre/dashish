@@ -173,15 +173,16 @@ export function renderVacuumCard(vacuumId, dragProps, getControls, cardStyle, se
   );
 }
 
-export function renderMediaPlayerCard(mpId, dragProps, getControls, cardStyle, _settingsKey, ctx) {
-  const { entities, editMode, customNames, getA, getEntityImageUrl, callService, isMediaActive, openMediaModal, t } = ctx;
+export function renderMediaPlayerCard(mpId, dragProps, getControls, cardStyle, settingsKey, ctx) {
+  const { entities, editMode, customNames, getA, getEntityImageUrl, callService, isMediaActive, openMediaModal, cardSettings, t } = ctx;
   return (
     <MediaPlayerCard
-      key={mpId} mpId={mpId} dragProps={dragProps} controls={getControls(mpId)}
+      key={mpId} mpId={mpId} cardId={mpId} dragProps={dragProps} controls={getControls(mpId)}
       cardStyle={cardStyle} entities={entities} editMode={editMode}
       customNames={customNames} getA={getA} getEntityImageUrl={getEntityImageUrl}
       callService={callService} isMediaActive={isMediaActive}
       onOpen={openMediaModal} t={t}
+      cardSettings={cardSettings} settingsKey={settingsKey}
     />
   );
 }

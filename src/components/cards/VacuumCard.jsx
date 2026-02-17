@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { getIconComponent } from '../../icons';
 import {
   AlertTriangle,
@@ -26,6 +27,23 @@ const VacuumCard = ({
   isMobile,
   t
 }) => {
+  const cardRef = useRef(null);
+  const [isNarrowSmallCard, setIsNarrowSmallCard] = useState(false);
+
+  useEffect(() => {
+    const element = cardRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+
+    const updateWidth = () => {
+      setIsNarrowSmallCard(element.clientWidth < 230);
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   const entity = entities[vacuumId];
   if (!entity) {
     if (editMode) {
@@ -64,7 +82,7 @@ const VacuumCard = ({
 
   if (isSmall) {
     return (
-      <div key={vacuumId} {...dragProps} data-haptic={editMode ? undefined : 'card'} onClick={(e) => { e.stopPropagation(); if (!editMode) onOpen(); }} className={`touch-feedback ${isMobile ? 'p-3 pl-4 gap-2' : 'p-4 pl-5 gap-4'} rounded-3xl flex items-center justify-between transition-all duration-500 border group relative overflow-hidden font-sans h-full ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`} style={{...cardStyle, backgroundColor: state === "cleaning" ? 'rgba(59, 130, 246, 0.08)' : 'var(--card-bg)', borderColor: editMode ? 'rgba(59, 130, 246, 0.2)' : (state === "cleaning" ? 'rgba(59, 130, 246, 0.3)' : 'var(--card-border)'), containerType: 'inline-size'}}>
+      <div ref={cardRef} key={vacuumId} {...dragProps} data-haptic={editMode ? undefined : 'card'} onClick={(e) => { e.stopPropagation(); if (!editMode) onOpen(); }} className={`touch-feedback ${isMobile ? 'p-3 pl-4 gap-2' : 'p-4 pl-5 gap-4'} rounded-3xl flex items-center justify-between transition-all duration-500 border group relative overflow-hidden font-sans h-full ${!editMode ? 'cursor-pointer active:scale-[0.98]' : 'cursor-move'} ${isUnavailable ? 'opacity-70' : ''}`} style={{...cardStyle, backgroundColor: state === "cleaning" ? 'rgba(59, 130, 246, 0.08)' : 'var(--card-bg)', borderColor: editMode ? 'rgba(59, 130, 246, 0.2)' : (state === "cleaning" ? 'rgba(59, 130, 246, 0.3)' : 'var(--card-border)'), containerType: 'inline-size'}}>
         {controls}
         <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'} flex-1 min-w-0`}>
           <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${state === "cleaning" ? 'bg-blue-500/20 text-blue-400 animate-pulse' : 'bg-[var(--glass-bg)] text-[var(--text-secondary)]'}`}>
@@ -74,7 +92,7 @@ const VacuumCard = ({
             <p className="text-[var(--text-secondary)] text-xs tracking-widest uppercase font-bold opacity-60 whitespace-normal break-words leading-none mb-1.5">{name}</p>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-[var(--text-primary)] leading-none">{statusText}</span>
-              {showBattery && <span className="text-xs text-[var(--text-secondary)]">{battery}%</span>}
+              {showBattery && !isNarrowSmallCard && <span className="text-xs text-[var(--text-secondary)]">{battery}%</span>}
             </div>
           </div>
         </div>
