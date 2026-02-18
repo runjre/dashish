@@ -66,7 +66,7 @@ export default function StatusPill({
         if (!evaluateEntityCondition({ condition: pill.condition, entity: tempEntity, getAttribute: getA })) return false;
         return true;
       });
-      if (!meetsCondition && activeEntities.length === 0) return null;
+      if (!meetsCondition) return null;
     } else if (isConditionEnabled) {
       // No condition specified, only show if there are active entities
       if (activeEntities.length === 0) return null;
@@ -74,6 +74,18 @@ export default function StatusPill({
 
     const displayEntities = isConditionEnabled ? activeEntities : mediaEntities;
     const count = displayEntities.length;
+    const hasCandidateMediaMetadata = (candidate) => {
+      if (!candidate) return false;
+      const attrs = candidate.attributes || {};
+      return Boolean(
+        attrs.media_title
+        || attrs.media_channel
+        || attrs.media_artist
+        || attrs.media_album_name
+        || attrs.entity_picture
+        || attrs.media_image_url
+      );
+    };
     const pickBestDisplayEntity = (candidates) => {
       if (!Array.isArray(candidates) || candidates.length === 0) return null;
       const scored = candidates
@@ -83,8 +95,9 @@ export default function StatusPill({
           const hasTitle = Boolean(attrs.media_title || attrs.media_channel || attrs.media_album_name);
           const hasImage = Boolean(attrs.entity_picture || attrs.media_image_url);
           const hasArtist = Boolean(attrs.media_artist || attrs.media_album_name);
+          const hasMetadata = hasCandidateMediaMetadata(candidate);
           const isPlayingState = candidate.state === 'playing';
-          const score = (isPlayingState ? 100 : 0) + (hasTitle ? 10 : 0) + (hasImage ? 5 : 0) + (hasArtist ? 2 : 0);
+          const score = (isPlayingState ? 100 : 0) + (hasMetadata ? 25 : 0) + (hasTitle ? 10 : 0) + (hasImage ? 5 : 0) + (hasArtist ? 2 : 0);
           return { candidate, score };
         })
         .sort((a, b) => b.score - a.score);
@@ -106,7 +119,8 @@ export default function StatusPill({
       ? (firstActive.attributes?.entity_picture || firstActive.attributes?.media_image_url)
       : null;
     const isPlaying = firstActive?.state === 'playing';
-    const picture = pill.showCover !== false && rawPicture && isPlaying ? getEntityImageUrl(rawPicture) : null;
+    const hasMediaMetadata = hasCandidateMediaMetadata(firstActive);
+    const picture = pill.showCover !== false && rawPicture && (isPlaying || hasMediaMetadata) ? getEntityImageUrl(rawPicture) : null;
     
     // Use pill.label if set, otherwise auto-generated
     const autoLabel = pill.type === 'emby'
@@ -125,10 +139,10 @@ export default function StatusPill({
           ? artist
         : (pill.showCount && count > 1 ? title : artist);
 
-    const sonosAutoLabel = isPlaying ? (title || friendlyName || 'Media') : (t('media.noMedia') || 'No media');
+    const sonosAutoLabel = (title || friendlyName || (!hasMediaMetadata ? (t('media.noMedia') || 'No media') : 'Media'));
 
     const label = pill.label || autoLabel;
-    const sublabel = (pill.type === 'sonos' && !isPlaying) ? null : (pill.sublabel || autoSublabel);
+    const sublabel = (pill.type === 'sonos' && !hasMediaMetadata) ? null : (pill.sublabel || autoSublabel);
     const displayLabel = pill.type === 'sonos' && !pill.label ? sonosAutoLabel : label;
     
     const IconComponent = pill.icon ? (getIconComponent(pill.icon) || Clapperboard) : Clapperboard;

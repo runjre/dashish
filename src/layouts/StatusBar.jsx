@@ -51,6 +51,14 @@ export default function StatusBar({
     .map(id => entities[id])
     .filter(isSonosEntity);
 
+  const hasSonosMediaMetadata = (entity) => {
+    if (!entity) return false;
+    const attrs = entity.attributes || {};
+    const hasText = Boolean(attrs.media_title || attrs.media_channel || attrs.media_artist || attrs.media_album_name);
+    const hasImage = Boolean(attrs.entity_picture || attrs.media_image_url);
+    return hasText || hasImage;
+  };
+
   const normalizePattern = (pattern) => pattern.trim();
 
   const buildWildcardRegex = (pattern) => {
@@ -163,9 +171,13 @@ export default function StatusBar({
             }
             
             if (pill.type === 'sonos') {
-              const sonosIds = getSonosEntities()
-                .map((entity) => entity.entity_id)
+              const filteredMediaIds = Object.keys(entities)
+                .filter((id) => id.startsWith('media_player.'))
                 .filter((id) => matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode));
+              const detectedSonosIds = getSonosEntities()
+                .map((entity) => entity.entity_id)
+                .filter((id) => filteredMediaIds.includes(id));
+              const sonosIds = detectedSonosIds.length > 0 ? detectedSonosIds : filteredMediaIds;
               const sonosEntities = sonosIds.map(id => entities[id]).filter(Boolean);
               const sonosPlayingCount = sonosEntities.filter(e => e.state === 'playing').length;
               
@@ -183,8 +195,10 @@ export default function StatusBar({
                   onClick={pill.clickable ? () => {
                     const activeEntities = sonosEntities.filter(isSonosActive);
                     const playingEntities = activeEntities.filter((entity) => entity.state === 'playing');
-                    const preferredEntity = playingEntities[0] || activeEntities[0] || sonosEntities[0];
-                    const selectedIds = activeEntities
+                    const metadataEntities = sonosEntities.filter(hasSonosMediaMetadata);
+                    const preferredEntity = playingEntities[0] || metadataEntities[0] || activeEntities[0] || sonosEntities[0];
+                    const selectedBase = activeEntities.length > 0 ? activeEntities : (metadataEntities.length > 0 ? metadataEntities : sonosEntities);
+                    const selectedIds = selectedBase
                       .map((entity) => entity?.entity_id)
                       .filter(Boolean);
 
