@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.3
+
+- Release metadata sync.
+
 ## 1.3.2
 
 - Includes dashboard release `1.3.2`.
