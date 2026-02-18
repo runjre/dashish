@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] — 2026-02-18
+
+### Added
+- Camera cards now support live stream preview with snapshot fallback, plus configurable auto-refresh modes (interval or motion-triggered) and motion sensor selection.
+- Calendar cards gained Outlook-style week time-grid view enhancements with responsive layout and multi-column support.
+- Add Card flow for Calendar now allows selecting calendar entities up front when creating a new calendar card.
+
+### Changed
+- Status Pills media/sonos data-source filtering UX now includes clearer included/excluded previews and compact list behavior for large player sets.
+- Media and Sonos count display now uses badges for active playing-player counts.
+
+### Fixed
+- Media popup opened from pills now scopes to active media players only.
+- Sonos pill defaults and migration handling now ensure clickable/count options behave consistently for new and existing pills.
+- Calendar selection list in Add Card no longer flickers during live entity updates.
+- Added missing German camera translation keys and improved motion refresh to trigger only on inactive→active state transitions.
+
+
 ## [1.3.1] — 2026-02-17
 
 ### Fixed

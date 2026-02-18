@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2
+
+- Includes dashboard release `1.3.2`.
+- Added camera card live-stream improvements with snapshot fallback, interval/motion refresh options, and motion-sensor-driven updates.
+- Added Outlook-style calendar week time-grid enhancements with responsive multi-column layout improvements.
+- Improved Status Pills media/sonos filtering and badge-based active-player count behavior.
+- Added calendar entity selection in Add Card and fixed calendar add-list flicker.
+- Keeps app and add-on versions synchronized at `1.3.2`.
+
 ## 1.3.1
 
 - Includes dashboard release `1.3.1`.
