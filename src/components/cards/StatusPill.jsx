@@ -85,11 +85,19 @@ export default function StatusPill({
     // Use pill.label if set, otherwise auto-generated
     const autoLabel = pill.type === 'emby'
       ? `${count} Spelar`
-      : (pill.showCount && count > 1 ? `${count} ${t('addCard.players')}` : (title || 'Media'));
-    
+      : pill.type === 'sonos'
+        ? (title || 'Media')
+        : pill.type === 'media_player'
+          ? (title || 'Media')
+        : (pill.showCount && count > 1 ? `${count} ${t('addCard.players')}` : (title || 'Media'));
+
     const autoSublabel = pill.type === 'emby'
       ? (title || artist)
-      : (pill.showCount && count > 1 ? title : artist);
+      : pill.type === 'sonos'
+        ? artist
+        : pill.type === 'media_player'
+          ? artist
+        : (pill.showCount && count > 1 ? title : artist);
 
     const label = pill.label || autoLabel;
     const sublabel = pill.sublabel || autoSublabel;

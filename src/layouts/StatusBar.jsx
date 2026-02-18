@@ -135,14 +135,19 @@ export default function StatusBar({
                   isMediaActive={isMediaActive}
                   t={t}
                   isMobile={isMobile}
-                  badge={pill.type === 'emby' && playingCount >= 2 ? playingCount : undefined}
+                  badge={pill.showCount
+                    ? (pill.type === 'emby'
+                      ? (playingCount >= 2 ? playingCount : undefined)
+                      : (pill.type === 'media_player' && playingCount > 0 ? playingCount : undefined))
+                    : undefined}
                   onClick={pill.clickable ? () => {
                     const activeEntities = mediaEntities.filter(isMediaActive);
-                    const firstActive = activeEntities[0] || mediaEntities[0];
+                    const firstActive = activeEntities[0];
                     if (!firstActive) return;
+                    const activeMediaIds = activeEntities.map((entity) => entity.entity_id).filter(Boolean);
                     setActiveMediaId(firstActive.entity_id);
                     setActiveMediaGroupKey(null);
-                    setActiveMediaGroupIds(mediaIds);
+                    setActiveMediaGroupIds(activeMediaIds);
                     if (pill.type === 'emby' && Array.isArray(pill.sessionSensorIds)) {
                       setActiveMediaSessionSensorIds(pill.sessionSensorIds);
                     } else {
@@ -161,6 +166,7 @@ export default function StatusBar({
                     .filter(id => matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode))
                 : getSonosEntities().map(e => e.entity_id);
               const sonosEntities = sonosIds.map(id => entities[id]).filter(Boolean);
+              const sonosPlayingCount = sonosEntities.filter(e => e.state === 'playing').length;
               
               return (
                 <StatusPill
@@ -172,6 +178,7 @@ export default function StatusBar({
                   isMediaActive={isSonosActive}
                   t={t}
                   isMobile={isMobile}
+                  badge={pill.showCount && sonosPlayingCount > 0 ? sonosPlayingCount : undefined}
                   onClick={pill.clickable ? () => {
                     setActiveMediaModal('sonos');
                   } : undefined}

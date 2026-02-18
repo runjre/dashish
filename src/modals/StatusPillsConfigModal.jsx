@@ -24,6 +24,8 @@ export default function StatusPillsConfigModal({
   const [pillSearch, setPillSearch] = useState('');
   const [entitySearch, setEntitySearch] = useState('');
   const [showEntityPicker, setShowEntityPicker] = useState(false);
+  const [dataSourcePreviewSearch, setDataSourcePreviewSearch] = useState('');
+  const [showMediaSourcePreviewList, setShowMediaSourcePreviewList] = useState(false);
   const [stateInputValue, setStateInputValue] = useState('');
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [mdiLoadedVersion, setMdiLoadedVersion] = useState(0);
@@ -62,6 +64,8 @@ export default function StatusPillsConfigModal({
       setMobilePane('list');
       setPillSearch('');
       setEntitySearch('');
+      setDataSourcePreviewSearch('');
+      setShowMediaSourcePreviewList(false);
       setShowEntityPicker(false);
       setShowIconPicker(false);
 
@@ -118,11 +122,11 @@ export default function StatusPillsConfigModal({
       conditionEnabled: false,
       unitSource: 'ha',
       customUnit: '',
-      clickable: false,
+      clickable: pillType === 'sonos',
       animated: true,
       visible: true,
       showCover: true,
-      showCount: false,
+      showCount: pillType === 'sonos',
       mediaFilter: '',
       mediaFilterMode: 'startsWith',
       mediaSelectionMode: 'filter',
@@ -187,6 +191,42 @@ export default function StatusPillsConfigModal({
       || String(pill.entityId || '').toLowerCase().includes(query)
       || String(typeLabel || '').toLowerCase().includes(query);
   });
+
+  const normalizePattern = (pattern) => pattern.trim();
+
+  const buildWildcardRegex = (pattern) => {
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+    const wildcard = escaped.replace(/\*/g, '.*');
+    return new RegExp(`^${wildcard}$`, 'i');
+  };
+
+  const matchesMediaFilter = (id, filter, mode) => {
+    if (!filter) return true;
+    const patterns = filter
+      .split(',')
+      .map(normalizePattern)
+      .filter(Boolean);
+    if (patterns.length === 0) return true;
+
+    return patterns.some((pattern) => {
+      if (mode === 'regex') {
+        try {
+          const regex = new RegExp(pattern, 'i');
+          return regex.test(id);
+        } catch {
+          return false;
+        }
+      }
+
+      if (pattern.includes('*')) {
+        const wildcardRegex = buildWildcardRegex(pattern);
+        return wildcardRegex.test(id);
+      }
+
+      if (mode === 'contains') return id.toLowerCase().includes(pattern.toLowerCase());
+      return id.toLowerCase().startsWith(pattern.toLowerCase());
+    });
+  };
 
   const colorPresets = [
     { name: 'Blue', bg: 'rgba(59, 130, 246, 0.3)', icon: 'text-blue-400', label: t('statusPills.colorBlue') },
@@ -395,6 +435,20 @@ export default function StatusPillsConfigModal({
               const previewPill = { ...pill, conditionEnabled: false, visible: true };
               const previewEntity = pill.entityId ? entities[pill.entityId] : null;
               const getPreviewAttribute = (entityId, attributeName) => entities?.[entityId]?.attributes?.[attributeName];
+              const mediaPlayerIds = entityOptions.filter((id) => id.startsWith('media_player.'));
+              const sonosMatchedIds = mediaPlayerIds.filter((id) => matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode));
+              const sonosFilteredIds = mediaPlayerIds.filter((id) => !matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode));
+              const previewQuery = dataSourcePreviewSearch.trim().toLowerCase();
+              const sonosPreviewRows = mediaPlayerIds
+                .filter((id) => {
+                  if (!previewQuery) return true;
+                  const name = (entities[id]?.attributes?.friendly_name || '').toLowerCase();
+                  return id.toLowerCase().includes(previewQuery) || name.includes(previewQuery);
+                })
+                .slice(0, 80);
+              const sonosMatchedIdSet = new Set(sonosMatchedIds);
+              const sonosIncludedPreviewRows = sonosPreviewRows.filter((id) => sonosMatchedIdSet.has(id));
+              const sonosExcludedPreviewRows = sonosPreviewRows.filter((id) => !sonosMatchedIdSet.has(id));
               
               return (
                 <div className="space-y-4 md:space-y-5">
@@ -606,6 +660,93 @@ export default function StatusPillsConfigModal({
                                 </select>
                             </div>
                             <p className="text-[10px] text-[var(--text-muted)]">{t('statusPills.filterHint')}</p>
+
+                            {(pill.type === 'sonos' || pill.type === 'media_player') && (
+                              <div className="mt-2 space-y-2 rounded-xl border border-[var(--glass-border)]/60 bg-[var(--modal-bg)] p-2.5">
+                                <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-300 font-bold">
+                                    Included {sonosMatchedIds.length}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full bg-[var(--glass-bg)] text-[var(--text-muted)] font-bold">
+                                    Filtered out {sonosFilteredIds.length}
+                                  </span>
+                                  <span className="ml-auto text-[var(--text-muted)] font-semibold">
+                                    Total {mediaPlayerIds.length}
+                                  </span>
+                                </div>
+
+                                <input
+                                  type="text"
+                                  value={dataSourcePreviewSearch}
+                                  onChange={(e) => setDataSourcePreviewSearch(e.target.value)}
+                                  placeholder="Find player in preview"
+                                  className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--glass-bg)] text-[var(--text-primary)] outline-none border-0 text-xs"
+                                />
+
+                                <button
+                                  type="button"
+                                  onClick={() => setShowMediaSourcePreviewList((prev) => !prev)}
+                                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[var(--glass-bg)] text-[var(--text-secondary)] text-xs font-bold"
+                                >
+                                  <span>{showMediaSourcePreviewList ? 'Hide list' : 'Show list'}</span>
+                                  {showMediaSourcePreviewList ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                </button>
+
+                                {showMediaSourcePreviewList && (
+                                  <div className="max-h-48 overflow-y-auto rounded-lg bg-[var(--glass-bg)] p-1 custom-scrollbar space-y-1">
+                                    {sonosIncludedPreviewRows.length > 0 && (
+                                      <div className="px-2 py-1">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-green-300 mb-1">Included</div>
+                                        <div className="space-y-1">
+                                          {sonosIncludedPreviewRows.map((id) => {
+                                            const friendlyName = entities[id]?.attributes?.friendly_name || id;
+                                            return (
+                                              <div key={id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs text-[var(--text-primary)] bg-green-500/5">
+                                                <div className="min-w-0">
+                                                  <div className="truncate font-semibold">{friendlyName}</div>
+                                                  <div className="truncate text-[10px] opacity-80">{id}</div>
+                                                </div>
+                                                <span className="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-300">In</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {sonosExcludedPreviewRows.length > 0 && (
+                                      <div className="px-2 py-1">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1">Filtered out</div>
+                                        <div className="space-y-1">
+                                          {sonosExcludedPreviewRows.map((id) => {
+                                            const friendlyName = entities[id]?.attributes?.friendly_name || id;
+                                            return (
+                                              <div key={id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs text-[var(--text-muted)]">
+                                                <div className="min-w-0">
+                                                  <div className="truncate font-semibold">{friendlyName}</div>
+                                                  <div className="truncate text-[10px] opacity-80">{id}</div>
+                                                </div>
+                                                <span className="shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--modal-bg)] text-[var(--text-muted)]">Out</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {sonosPreviewRows.length === 0 && (
+                                      <p className="px-2 py-2 text-[10px] text-[var(--text-muted)] italic">No players match this search.</p>
+                                    )}
+                                  </div>
+                                )}
+
+                                {mediaPlayerIds.length > sonosPreviewRows.length && (
+                                  <p className="text-[10px] text-[var(--text-muted)] px-1">
+                                    Showing first {sonosPreviewRows.length} of {mediaPlayerIds.length} players.
+                                  </p>
+                                )}
+                              </div>
+                            )}
                          </div>
                       )}
 

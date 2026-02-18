@@ -81,6 +81,33 @@ function loadPagesConfig() {
   return parsed;
 }
 
+/** Synchronously load & migrate status pills config from localStorage. */
+function loadStatusPillsConfig() {
+  const parsed = readJSON('tunet_status_pills_config', []);
+  if (!Array.isArray(parsed)) return [];
+
+  let modified = false;
+  const next = parsed.map((pill) => {
+    if (!pill || typeof pill !== 'object' || pill.type !== 'sonos') return pill;
+
+    const updates = {};
+    if (typeof pill.clickable !== 'boolean') {
+      updates.clickable = true;
+      modified = true;
+    }
+    if (typeof pill.showCount !== 'boolean') {
+      updates.showCount = true;
+      modified = true;
+    }
+
+    if (Object.keys(updates).length === 0) return pill;
+    return { ...pill, ...updates };
+  });
+
+  if (modified) writeJSON('tunet_status_pills_config', next);
+  return next;
+}
+
 /** @type {import('react').Context<PageContextValue | null>} */
 const PageContext = createContext(null);
 
@@ -275,9 +302,7 @@ export const PageProvider = ({ children }) => {
     writeJSON('tunet_header_settings', newSettings);
   };
 
-  const [statusPillsConfig, setStatusPillsConfig] = useState(() => 
-    readJSON('tunet_status_pills_config', [])
-  );
+  const [statusPillsConfig, setStatusPillsConfig] = useState(loadStatusPillsConfig);
 
   const saveStatusPillsConfig = (newConfig) => {
     setStatusPillsConfig(newConfig);
