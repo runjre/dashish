@@ -26,6 +26,7 @@ export default function StatusPill({
 }) {
   if (!pill) return null;
   const isConditionEnabled = pill.conditionEnabled !== false;
+  const textMaxWidthClass = isMobile ? 'max-w-[16ch]' : 'max-w-[26ch]';
 
   const capitalizeFirst = (value) => {
     if (!value) return value;
@@ -191,7 +192,7 @@ export default function StatusPill({
     const animated = pill.animated !== false && isPlaying;
     
     // Mobile adjustments
-    const paddingClass = isMobile ? 'px-2 py-1 gap-1.5' : 'px-3 py-1.5 gap-2.5';
+    const paddingClass = isMobile ? 'px-1.5 py-0.5 gap-1.5' : 'px-2.5 py-1 gap-2';
     const iconPadding = isMobile ? 'p-1' : 'p-1.5';
     const textSize = isMobile ? 'text-[10px]' : 'text-xs';
 
@@ -221,14 +222,20 @@ export default function StatusPill({
             <IconComponent className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
           </div>
         )}
-        <div className="flex flex-col items-start">
+        <div className="flex flex-col items-start min-w-0">
           {displayLabel && (
-            <span className={`${textSize} uppercase font-bold leading-tight ${labelColor}`}>
+            <span
+              className={`${textSize} uppercase font-bold leading-tight text-left ${labelColor} ${textMaxWidthClass} block w-full truncate`}
+              title={displayLabel}
+            >
               {displayLabel}
             </span>
           )}
           {sublabel && (
-            <span className={`${textSize} font-medium italic ${sublabelColor}`}>
+            <span
+              className={`${textSize} font-medium italic text-left ${sublabelColor} ${textMaxWidthClass} block w-full truncate`}
+              title={sublabel}
+            >
               {sublabel}
             </span>
           )}
@@ -269,7 +276,7 @@ export default function StatusPill({
   );
 
   // Mobile adjustments
-  const paddingClass = isMobile ? 'px-2 py-1 gap-1.5' : 'px-3 py-1.5 gap-2.5';
+  const paddingClass = isMobile ? 'px-1.5 py-0.5 gap-1.5' : 'px-2.5 py-1 gap-2';
   const iconPadding = isMobile ? 'p-1' : 'p-1.5';
   const textSize = isMobile ? 'text-[10px]' : 'text-xs';
 
@@ -288,11 +295,17 @@ export default function StatusPill({
       <div className={`${iconPadding} rounded-xl ${iconColor}`} style={{ backgroundColor: iconBgColor }}>
         <IconComponent className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
       </div>
-      <div className="flex flex-col items-start">
-        <span className={`${textSize} uppercase font-bold leading-tight ${labelColor}`}>
+      <div className="flex flex-col items-start min-w-0">
+        <span
+          className={`${textSize} uppercase font-bold leading-tight text-left ${labelColor} ${textMaxWidthClass} block w-full truncate`}
+          title={label}
+        >
           {label}
         </span>
-        <span className={`${textSize} font-medium italic ${sublabelColor}`}>
+        <span
+          className={`${textSize} font-medium italic text-left ${sublabelColor} ${textMaxWidthClass} block w-full truncate`}
+          title={sublabel}
+        >
           {sublabel}
         </span>
       </div>

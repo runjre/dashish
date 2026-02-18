@@ -4,7 +4,7 @@
  *
  * Extracted from the inline `getControls` function in App.jsx.
  */
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -46,6 +46,8 @@ function EditOverlay({
   _settingsKey,
   isHidden,
   currentSize,
+  currentColSpan,
+  maxColSpan,
   settings,
   canRemove,
   onMoveLeft,
@@ -53,15 +55,25 @@ function EditOverlay({
   onEdit,
   onToggleVisibility,
   onSaveSize,
+  onSaveColSpan,
   onRemove,
   dragHandleProps,
   t,
 }) {
+  const resizeRef = useRef(null);
   const isSpacerCard = editId?.startsWith('spacer_card_');
   const isCompactSpacer = isSpacerCard && Number(settings?.heightPx || 0) > 0 && Number(settings?.heightPx || 0) <= 56;
   const showResize = canResize(editId, settings);
   const isSmall = currentSize === 'small';
   const isTriple = TRIPLE_SIZE_PREFIXES.some(p => editId.startsWith(p));
+  const allowColResize = Number(maxColSpan || 1) > 1;
+  const sizeOrder = isTriple ? ['small', 'medium', 'large'] : ['small', 'large'];
+  const normalizedSize = sizeOrder.includes(currentSize) ? currentSize : sizeOrder[sizeOrder.length - 1];
+  const colMin = 1;
+  const colMax = Math.max(1, Number(maxColSpan || 1));
+  const rowThreshold = 90;
+  const colThreshold = 120;
+  const stepCooldownMs = 90;
   const topOffsetClass = isCompactSpacer ? 'top-1' : 'top-2';
   const sideOffsetClass = isCompactSpacer ? 'left-1' : 'left-2';
   const rightOffsetClass = isCompactSpacer ? 'right-1' : 'right-2';
@@ -77,6 +89,120 @@ function EditOverlay({
     ? 'flex items-center justify-center p-1.5 rounded-full bg-black/50 border border-white/10 text-white/80 shadow-lg pointer-events-auto'
     : 'flex items-center justify-center p-3 rounded-full bg-black/50 border border-white/10 text-white/80 shadow-lg pointer-events-auto';
   const dragIconClass = isCompactSpacer ? 'w-4 h-4' : 'w-5 h-5';
+
+  const clearResizeSession = () => {
+    resizeRef.current = null;
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+      window.removeEventListener('pointercancel', handleWindowPointerUp);
+    }
+  };
+
+  function handleWindowPointerMove(event) {
+    const state = resizeRef.current;
+    if (!state || event.pointerId !== state.pointerId) return;
+    event.preventDefault();
+    const now = Date.now();
+    const cooldownActive = now - (state.lastStepAt || 0) < stepCooldownMs;
+
+    const deltaX = (event.clientX - state.lastX) * state.horizontalDir;
+    const deltaY = (event.clientY - state.lastY) * state.verticalDir;
+
+    state.lastX = event.clientX;
+    state.lastY = event.clientY;
+    state.accX += deltaX;
+    state.accY += deltaY;
+
+    if (allowColResize && !cooldownActive) {
+      if (state.accX >= colThreshold) {
+        state.accX -= colThreshold;
+        const nextCol = Math.min(colMax, state.colSpan + 1);
+        if (nextCol !== state.colSpan) {
+          state.colSpan = nextCol;
+          onSaveColSpan?.(nextCol);
+          state.lastStepAt = now;
+        }
+      }
+
+      if (state.accX <= -colThreshold) {
+        state.accX += colThreshold;
+        const nextCol = Math.max(colMin, state.colSpan - 1);
+        if (nextCol !== state.colSpan) {
+          state.colSpan = nextCol;
+          onSaveColSpan?.(nextCol);
+          state.lastStepAt = now;
+        }
+      }
+    }
+
+    if (showResize && !cooldownActive) {
+      if (state.accY >= rowThreshold) {
+        state.accY -= rowThreshold;
+        const nextIndex = Math.min(sizeOrder.length - 1, state.sizeIndex + 1);
+        if (nextIndex !== state.sizeIndex) {
+          state.sizeIndex = nextIndex;
+          onSaveSize?.(sizeOrder[nextIndex]);
+          state.lastStepAt = now;
+        }
+      }
+
+      if (state.accY <= -rowThreshold) {
+        state.accY += rowThreshold;
+        const nextIndex = Math.max(0, state.sizeIndex - 1);
+        if (nextIndex !== state.sizeIndex) {
+          state.sizeIndex = nextIndex;
+          onSaveSize?.(sizeOrder[nextIndex]);
+          state.lastStepAt = now;
+        }
+      }
+    }
+  }
+
+  function handleWindowPointerUp(event) {
+    const state = resizeRef.current;
+    if (!state || event.pointerId !== state.pointerId) return;
+    event.preventDefault();
+    clearResizeSession();
+  }
+
+  const startCornerResize = (event, corner) => {
+    if (!showResize && !allowColResize) return;
+    event.stopPropagation();
+    event.preventDefault();
+
+    const horizontalDir = corner.includes('right') ? 1 : -1;
+    const verticalDir = corner.includes('bottom') ? 1 : -1;
+    const currentIndex = sizeOrder.indexOf(normalizedSize);
+
+    resizeRef.current = {
+      pointerId: event.pointerId,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      accX: 0,
+      accY: 0,
+      horizontalDir,
+      verticalDir,
+      sizeIndex: currentIndex >= 0 ? currentIndex : sizeOrder.length - 1,
+      colSpan: Math.max(colMin, Math.min(colMax, Number(currentColSpan || 1))),
+      lastStepAt: 0,
+    };
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pointermove', handleWindowPointerMove, { passive: false });
+      window.addEventListener('pointerup', handleWindowPointerUp, { passive: false });
+      window.addEventListener('pointercancel', handleWindowPointerUp, { passive: false });
+    }
+  };
+
+  const cornerHandleClass = isCompactSpacer
+    ? 'absolute z-50 w-3 h-3 rounded-sm border border-white/40 bg-black/60 backdrop-blur-sm'
+    : 'absolute z-50 w-4 h-4 rounded-md border border-white/40 bg-black/60 backdrop-blur-sm';
+  const showCornerHandles = showResize || allowColResize;
 
   return (
     <>
@@ -150,6 +276,47 @@ function EditOverlay({
           <GripVertical className={dragIconClass} />
         </div>
       </div>
+
+      {showCornerHandles && (
+        <>
+          <button
+            type="button"
+            className={`${cornerHandleClass} top-1 left-1 cursor-nwse-resize`}
+            draggable={false}
+            onDragStart={(event) => event.preventDefault()}
+            onPointerDown={(event) => startCornerResize(event, 'top-left')}
+            aria-label="Resize card from top left"
+            title={t('tooltip.resizeCard') || 'Resize card'}
+          />
+          <button
+            type="button"
+            className={`${cornerHandleClass} top-1 right-1 cursor-nesw-resize`}
+            draggable={false}
+            onDragStart={(event) => event.preventDefault()}
+            onPointerDown={(event) => startCornerResize(event, 'top-right')}
+            aria-label="Resize card from top right"
+            title={t('tooltip.resizeCard') || 'Resize card'}
+          />
+          <button
+            type="button"
+            className={`${cornerHandleClass} bottom-1 left-1 cursor-nesw-resize`}
+            draggable={false}
+            onDragStart={(event) => event.preventDefault()}
+            onPointerDown={(event) => startCornerResize(event, 'bottom-left')}
+            aria-label="Resize card from bottom left"
+            title={t('tooltip.resizeCard') || 'Resize card'}
+          />
+          <button
+            type="button"
+            className={`${cornerHandleClass} bottom-1 right-1 cursor-nwse-resize`}
+            draggable={false}
+            onDragStart={(event) => event.preventDefault()}
+            onPointerDown={(event) => startCornerResize(event, 'bottom-right')}
+            aria-label="Resize card from bottom right"
+            title={t('tooltip.resizeCard') || 'Resize card'}
+          />
+        </>
+      )}
     </>
   );
 }

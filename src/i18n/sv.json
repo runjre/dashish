@@ -456,6 +456,7 @@
   "person.display.photo": "Foto",
   "person.historyTitle": "Historik (Senaste 24h)",
   "person.mobileAppBattery": "Mobilapp batteri",
+  "person.showState": "Visa status",
   "person.showHistory": "Visa historik på karta",
   "profiles.backendUnavailable": "Profilservern är inte tillgänglig.",
   "profiles.blankActive": "Instrumentpanelen återställdes. Du kan ångra för att återställa din tidigare layout.",

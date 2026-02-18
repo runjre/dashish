@@ -143,6 +143,7 @@ export function useCardRendering({
       const editId = targetId || cardId;
       const controlsHidden = hiddenCards.includes(cardId) || isCardHiddenByLogic(cardId);
       const settings = cardSettings[settingsKey] || cardSettings[editId] || {};
+      const currentColSpan = Number.isFinite(Number(settings?.colSpan)) ? Number(settings.colSpan) : 1;
 
       return (
         <EditOverlay
@@ -151,6 +152,8 @@ export function useCardRendering({
           settingsKey={settingsKey}
           isHidden={controlsHidden}
           currentSize={cardSettings[settingsKey]?.size || 'large'}
+          currentColSpan={currentColSpan}
+          maxColSpan={gridColCount}
           settings={settings}
           canRemove={isCardRemovable(cardId)}
           onMoveLeft={() => moveCardInArray(cardId, 'left')}
@@ -158,6 +161,7 @@ export function useCardRendering({
           onEdit={() => { setShowEditCardModal(editId); setEditCardSettingsKey(settingsKey); }}
           onToggleVisibility={() => toggleCardVisibility(cardId)}
           onSaveSize={(size) => saveCardSetting(settingsKey, 'size', size)}
+          onSaveColSpan={(colSpan) => saveCardSetting(settingsKey, 'colSpan', colSpan)}
           onRemove={() => removeCard(cardId)}
           dragHandleProps={{
             onContextMenu: (e) => e.preventDefault(),
@@ -237,6 +241,7 @@ export function useCardRendering({
     toggleCardVisibility,
     saveCardSetting,
     removeCard,
+    gridColCount,
     t,
     touchPath,
     entities,

@@ -456,6 +456,7 @@
   "person.display.photo": "Photo",
   "person.historyTitle": "History (Last 24h)",
   "person.mobileAppBattery": "Mobile App Battery",
+  "person.showState": "Show State",
   "person.showHistory": "Show History on Map",
   "profiles.backendUnavailable": "Profile server is not available.",
   "profiles.blankActive": "Dashboard was reset. You can undo to restore your previous setup.",

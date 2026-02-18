@@ -26,6 +26,9 @@ const PersonStatus = ({
   const headerSettingsKey = getCardSettingsKey(id, 'header');
   const headerSettings = cardSettings[headerSettingsKey] || {};
   const personDisplay = headerSettings.personDisplay || 'photo';
+  const showName = headerSettings.showName !== false;
+  const showState = headerSettings.showState !== false;
+  const avatarOnly = !showName && !showState;
   const useIcon = personDisplay === 'icon';
   const personIconName = customIcons[id] || entity?.attributes?.icon;
   const PersonIcon = personIconName ? (getIconComponent(personIconName) || User) : User;
@@ -34,7 +37,7 @@ const PersonStatus = ({
     <div
       key={id}
       onClick={(e) => { if (!editMode) { e.stopPropagation(); onOpenPerson(id); } }}
-      className="group relative flex items-center gap-2 sm:gap-3 pl-1.5 pr-2 sm:pr-5 py-1.5 rounded-full transition-all duration-500 hover:bg-[var(--glass-bg)]"
+      className={`group relative flex items-center rounded-full transition-all duration-500 hover:bg-[var(--glass-bg)] ${avatarOnly ? 'gap-1 pl-1 pr-1.5 py-1' : 'gap-2 sm:gap-3 pl-1.5 pr-2 sm:pr-5 py-1.5'}`}
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.02)',
         boxShadow: isHome ? '0 0 20px rgba(34, 197, 94, 0.05)' : 'none',
@@ -72,17 +75,23 @@ const PersonStatus = ({
         />
       </div>
 
-      <div className="hidden sm:flex flex-col justify-center">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-[var(--text-primary)] leading-none tracking-wide">{name}</span>
+      {(showName || showState) && (
+        <div className="hidden sm:flex flex-col justify-center">
+          {showName && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[var(--text-primary)] leading-none tracking-wide">{name}</span>
+            </div>
+          )}
+          {showState && (
+            <span
+              className={`text-xs font-bold uppercase tracking-widest leading-none transition-colors duration-300 ${showName ? 'mt-1' : ''}`}
+              style={{ color: isHome ? '#4ade80' : 'rgba(156, 163, 175, 0.5)' }}
+            >
+              {String(statusText)}
+            </span>
+          )}
         </div>
-        <span
-          className="text-xs font-bold uppercase tracking-widest leading-none mt-1 transition-colors duration-300"
-          style={{ color: isHome ? '#4ade80' : 'rgba(156, 163, 175, 0.5)' }}
-        >
-          {String(statusText)}
-        </span>
-      </div>
+      )}
     </div>
   );
 };

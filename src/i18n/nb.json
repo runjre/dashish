@@ -811,6 +811,7 @@
   "person.battery": "Batteri",
   "person.mobileAppBattery": "Mobilapp-batteri",
   "person.deviceTracker": "Enhetssporer (kart)",
+  "person.showState": "Vis status",
   "person.showHistory": "Vis historikk på kart",
   "androidtv.linkedSpeakers": "Koblede høyttalere",
   "androidtv.searchPlayers": "Søk mediaspillere...",

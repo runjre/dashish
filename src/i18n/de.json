@@ -446,6 +446,7 @@
   "person.display.photo": "Foto",
   "person.historyTitle": "Verlauf (Letzte 24 Std.)",
   "person.mobileAppBattery": "Handy-Batterie",
+  "person.showState": "Status anzeigen",
   "person.showHistory": "Verlauf auf Karte anzeigen",
   "profiles.backendUnavailable": "Profil-Server nicht verfügbar.",
   "profiles.blankActive": "Dashboard wurde zurückgesetzt. Du kannst dies rückgängig machen, um dein vorheriges Setup wiederherzustellen.",

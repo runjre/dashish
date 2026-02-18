@@ -456,6 +456,7 @@
   "person.display.photo": "Bilete",
   "person.historyTitle": "Historikk (Siste 24t)",
   "person.mobileAppBattery": "Mobilapp-batteri",
+  "person.showState": "Vis status",
   "person.showHistory": "Vis historikk på kart",
   "profiles.backendUnavailable": "Profilserveren er ikkje tilgjengeleg.",
   "profiles.blankActive": "Dashbordet vart tilbakestilt. Du kan angre for å gjenopprette det førre oppsettet.",

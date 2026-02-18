@@ -778,6 +778,28 @@ export default function EditCardModal({
                 </div>
               </div>
 
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 popup-surface rounded-2xl">
+                  <span className="text-xs uppercase font-bold text-gray-500 tracking-widest">{t('form.showName') || 'Show Name'}</span>
+                  <button
+                    onClick={() => editSettingsKey && saveCardSetting(editSettingsKey, 'showName', !(editSettings.showName !== false))}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${editSettings.showName !== false ? 'bg-blue-500' : 'bg-[var(--glass-bg-hover)]'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editSettings.showName !== false ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 popup-surface rounded-2xl">
+                  <span className="text-xs uppercase font-bold text-gray-500 tracking-widest">{t('person.showState') || 'Show State'}</span>
+                  <button
+                    onClick={() => editSettingsKey && saveCardSetting(editSettingsKey, 'showState', !(editSettings.showState !== false))}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${editSettings.showState !== false ? 'bg-blue-500' : 'bg-[var(--glass-bg-hover)]'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editSettings.showState !== false ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+              </div>
+
                {/* Mobile App / Battery Sensor */}
                <div>
                  <label className="text-xs uppercase font-bold text-gray-500 ml-4 pb-2 block">{t('person.mobileAppBattery') || 'Mobile App Battery'}</label>
