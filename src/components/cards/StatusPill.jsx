@@ -139,10 +139,46 @@ export default function StatusPill({
           ? artist
         : (pill.showCount && count > 1 ? title : artist);
 
-    const sonosAutoLabel = (title || friendlyName || (!hasMediaMetadata ? (t('media.noMedia') || 'No media') : 'Media'));
+    const noMediaLabel = t('media.noMedia') || 'No media';
+    const sonosHeadingSource = pill.sonosHeadingSource || 'song';
+    const sonosSubheadingSource = pill.sonosSubheadingSource || 'artist_player';
+
+    const composeDual = (first, second) => [first, second].filter(Boolean).join(' - ');
+    const resolveSonosText = (source) => {
+      switch (source) {
+        case 'song':
+          return title || null;
+        case 'artist':
+          return artist || null;
+        case 'player':
+          return friendlyName || null;
+        case 'artist_song':
+          return composeDual(artist, title) || artist || title || null;
+        case 'song_artist':
+          return composeDual(title, artist) || title || artist || null;
+        case 'artist_player':
+          return composeDual(artist, friendlyName) || artist || friendlyName || null;
+        case 'player_artist':
+          return composeDual(friendlyName, artist) || friendlyName || artist || null;
+        case 'none':
+          return null;
+        default:
+          return null;
+      }
+    };
+
+    const resolvedSonosHeading = resolveSonosText(sonosHeadingSource);
+    const resolvedSonosSubheading = resolveSonosText(sonosSubheadingSource);
+    const sonosAutoLabel = sonosHeadingSource === 'none'
+      ? null
+      : (resolvedSonosHeading || (title || friendlyName || (!hasMediaMetadata ? noMediaLabel : 'Media')));
 
     const label = pill.label || autoLabel;
-    const sublabel = (pill.type === 'sonos' && !hasMediaMetadata) ? null : (pill.sublabel || autoSublabel);
+    const sublabel = (pill.type === 'sonos' && !hasMediaMetadata)
+      ? null
+      : (pill.type === 'sonos' && !pill.sublabel
+        ? (resolvedSonosSubheading || null)
+        : (pill.sublabel || autoSublabel));
     const displayLabel = pill.type === 'sonos' && !pill.label ? sonosAutoLabel : label;
     
     const IconComponent = pill.icon ? (getIconComponent(pill.icon) || Clapperboard) : Clapperboard;
@@ -186,9 +222,11 @@ export default function StatusPill({
           </div>
         )}
         <div className="flex flex-col items-start">
-          <span className={`${textSize} uppercase font-bold leading-tight ${labelColor}`}>
-            {displayLabel}
-          </span>
+          {displayLabel && (
+            <span className={`${textSize} uppercase font-bold leading-tight ${labelColor}`}>
+              {displayLabel}
+            </span>
+          )}
           {sublabel && (
             <span className={`${textSize} font-medium italic ${sublabelColor}`}>
               {sublabel}

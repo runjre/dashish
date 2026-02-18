@@ -95,7 +95,9 @@ export default function StatusPillsConfigModal({
       mediaFilterMode: typeof pill.mediaFilterMode === 'string' ? pill.mediaFilterMode : 'startsWith',
       mediaSelectionMode: typeof pill.mediaSelectionMode === 'string' ? pill.mediaSelectionMode : 'filter',
       mediaEntityIds: Array.isArray(pill.mediaEntityIds) ? pill.mediaEntityIds : [],
-      sessionSensorIds: Array.isArray(pill.sessionSensorIds) ? pill.sessionSensorIds : []
+      sessionSensorIds: Array.isArray(pill.sessionSensorIds) ? pill.sessionSensorIds : [],
+      sonosHeadingSource: typeof pill.sonosHeadingSource === 'string' ? pill.sonosHeadingSource : 'song',
+      sonosSubheadingSource: typeof pill.sonosSubheadingSource === 'string' ? pill.sonosSubheadingSource : 'artist_player'
     }));
     onSave(cleaned);
     onClose();
@@ -131,7 +133,9 @@ export default function StatusPillsConfigModal({
       mediaFilterMode: 'startsWith',
       mediaSelectionMode: 'filter',
       mediaEntityIds: [],
-      sessionSensorIds: []
+      sessionSensorIds: [],
+      sonosHeadingSource: 'song',
+      sonosSubheadingSource: 'artist_player'
     };
     setPills([...pills, newPill]);
     setEditingPill(newPill.id);
@@ -435,6 +439,11 @@ export default function StatusPillsConfigModal({
               const previewPill = { ...pill, conditionEnabled: false, visible: true };
               const previewEntity = pill.entityId ? entities[pill.entityId] : null;
               const getPreviewAttribute = (entityId, attributeName) => entities?.[entityId]?.attributes?.[attributeName];
+              const getPreviewImageUrl = (rawUrl) => {
+                if (!rawUrl) return null;
+                if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+                return rawUrl;
+              };
               const mediaPlayerIds = entityOptions.filter((id) => id.startsWith('media_player.'));
               const sonosMatchedIds = mediaPlayerIds.filter((id) => matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode));
               const sonosFilteredIds = mediaPlayerIds.filter((id) => !matchesMediaFilter(id, pill.mediaFilter, pill.mediaFilterMode));
@@ -449,6 +458,38 @@ export default function StatusPillsConfigModal({
               const sonosMatchedIdSet = new Set(sonosMatchedIds);
               const sonosIncludedPreviewRows = sonosPreviewRows.filter((id) => sonosMatchedIdSet.has(id));
               const sonosExcludedPreviewRows = sonosPreviewRows.filter((id) => !sonosMatchedIdSet.has(id));
+              const previewMediaIds = (() => {
+                if (pill.type === 'conditional') return [];
+                if (pill.type === 'media_player') {
+                  return pill.entityId ? [pill.entityId] : sonosMatchedIds;
+                }
+                if (pill.type === 'sonos') {
+                  return sonosMatchedIds;
+                }
+                if (pill.type === 'emby') {
+                  if ((pill.mediaSelectionMode || 'filter') === 'select' && Array.isArray(pill.mediaEntityIds) && pill.mediaEntityIds.length > 0) {
+                    return pill.mediaEntityIds;
+                  }
+                  return sonosMatchedIds;
+                }
+                return [];
+              })();
+              const previewMediaEntities = previewMediaIds.map((id) => entities[id]).filter(Boolean);
+              const previewStatusEntity = pill.type === 'conditional' ? previewEntity : previewMediaEntities;
+              const previewIsMediaActive = (mediaEntity) => {
+                if (!mediaEntity?.state) return false;
+                if (mediaEntity.state === 'playing' || mediaEntity.state === 'paused') return true;
+                if (pill.type !== 'sonos') return false;
+                const attrs = mediaEntity.attributes || {};
+                return Boolean(
+                  attrs.media_title
+                  || attrs.media_artist
+                  || attrs.media_channel
+                  || attrs.media_album_name
+                  || attrs.entity_picture
+                  || attrs.media_image_url
+                );
+              };
               
               return (
                 <div className="space-y-4 md:space-y-5">
@@ -468,14 +509,16 @@ export default function StatusPillsConfigModal({
                         className="w-full bg-transparent text-xl font-bold text-[var(--text-primary)] outline-none placeholder:text-gray-600"
                       />
                     </div>
-                    {/* Preview if conditional */}
-                    {pill.type === 'conditional' && (
+                    {/* Live preview */}
+                    {(pill.type === 'conditional' || pill.type === 'media_player' || pill.type === 'emby' || pill.type === 'sonos') && (
                       <div className="shrink-0">
                         <StatusPill
                           pill={previewPill}
-                          entity={previewEntity}
+                          entity={previewStatusEntity}
                           t={t}
                           getA={getPreviewAttribute}
+                          getEntityImageUrl={getPreviewImageUrl}
+                          isMediaActive={previewIsMediaActive}
                         />
                       </div>
                     )}
@@ -999,6 +1042,44 @@ export default function StatusPillsConfigModal({
                     {/* Visual Options Group */}
                       <section className={`${sectionShellClass} space-y-3`}>
                         <h4 className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{t('statusPills.options')}</h4>
+                          {pill.type === 'sonos' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-[var(--glass-bg)] rounded-xl p-3">
+                              <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-gray-500">{t('statusPills.headingSource') || 'Heading content'}</label>
+                                <select
+                                  value={pill.sonosHeadingSource || 'song'}
+                                  onChange={(e) => updatePill(pill.id, { sonosHeadingSource: e.target.value })}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[var(--modal-bg)] text-[var(--text-primary)] outline-none border-0 text-xs font-bold"
+                                >
+                                  <option value="none">{t('statusPills.valueNone') || 'None'}</option>
+                                  <option value="song">{t('statusPills.valueSong') || 'Song'}</option>
+                                  <option value="artist">{t('statusPills.valueArtist') || 'Artist'}</option>
+                                  <option value="player">{t('statusPills.valuePlayer') || 'Player'}</option>
+                                  <option value="artist_song">{t('statusPills.valueArtistSong') || 'Artist - Song'}</option>
+                                  <option value="song_artist">{t('statusPills.valueSongArtist') || 'Song - Artist'}</option>
+                                  <option value="artist_player">{t('statusPills.valueArtistPlayer') || 'Artist - Player'}</option>
+                                  <option value="player_artist">{t('statusPills.valuePlayerArtist') || 'Player - Artist'}</option>
+                                </select>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-gray-500">{t('statusPills.subheadingSource') || 'Subheading content'}</label>
+                                <select
+                                  value={pill.sonosSubheadingSource || 'artist_player'}
+                                  onChange={(e) => updatePill(pill.id, { sonosSubheadingSource: e.target.value })}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[var(--modal-bg)] text-[var(--text-primary)] outline-none border-0 text-xs font-bold"
+                                >
+                                  <option value="artist_player">{t('statusPills.valueArtistPlayer') || 'Artist - Player'}</option>
+                                  <option value="player_artist">{t('statusPills.valuePlayerArtist') || 'Player - Artist'}</option>
+                                  <option value="artist_song">{t('statusPills.valueArtistSong') || 'Artist - Song'}</option>
+                                  <option value="song_artist">{t('statusPills.valueSongArtist') || 'Song - Artist'}</option>
+                                  <option value="artist">{t('statusPills.valueArtist') || 'Artist'}</option>
+                                  <option value="song">{t('statusPills.valueSong') || 'Song'}</option>
+                                  <option value="player">{t('statusPills.valuePlayer') || 'Player'}</option>
+                                  <option value="none">{t('statusPills.valueNone') || 'None'}</option>
+                                </select>
+                              </div>
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => updatePill(pill.id, { animated: !pill.animated })}

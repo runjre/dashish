@@ -99,6 +99,14 @@ function loadStatusPillsConfig() {
       updates.showCount = true;
       modified = true;
     }
+    if (typeof pill.sonosHeadingSource !== 'string') {
+      updates.sonosHeadingSource = 'song';
+      modified = true;
+    }
+    if (typeof pill.sonosSubheadingSource !== 'string') {
+      updates.sonosSubheadingSource = 'artist_player';
+      modified = true;
+    }
 
     if (Object.keys(updates).length === 0) return pill;
     return { ...pill, ...updates };
