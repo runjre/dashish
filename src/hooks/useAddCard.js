@@ -106,6 +106,7 @@ export function useAddCard({
     if (addCardTargetPage === 'header') return t('addCard.available.people');
     if (addCardTargetPage === 'settings') return t('addCard.available.allEntities');
     if (addCardType === 'vacuum') return t('addCard.available.vacuums');
+    if (addCardType === 'fan') return t('addCard.available.fans');
     if (addCardType === 'camera') return t('addCard.available.cameras');
     if (addCardType === 'climate') return t('addCard.available.climates');
     if (addCardType === 'cover') return t('addCard.available.covers');
@@ -125,6 +126,8 @@ export function useAddCard({
         ? 'addCard.item.entities'
         : addCardType === 'vacuum'
           ? 'addCard.item.vacuums'
+          : addCardType === 'fan'
+            ? 'addCard.item.fans'
           : addCardType === 'camera'
             ? 'addCard.item.cameras'
           : addCardType === 'climate'

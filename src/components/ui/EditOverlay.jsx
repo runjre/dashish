@@ -22,6 +22,7 @@ const RESIZABLE_PREFIXES = [
   'light_', 'light.', 'vacuum.', 'automation.', 'climate_card_',
   'cost_card_', 'weather_temp_', 'androidtv_card_', 'calendar_card_',
   'todo_card_', 'nordpool_card_', 'car_card_', 'cover_card_', 'camera_card_',
+  'fan.', 'fan_card_',
 ];
 
 /** Prefixes that cycle through 3 sizes (small → medium → large). */
@@ -29,7 +30,7 @@ const TRIPLE_SIZE_PREFIXES = ['calendar_card_', 'todo_card_'];
 
 function canResize(editId, settings) {
   if (editId === 'car') return true;
-  if (['entity', 'toggle', 'sensor'].includes(settings?.type)) return true;
+  if (['entity', 'toggle', 'sensor', 'fan'].includes(settings?.type)) return true;
   return RESIZABLE_PREFIXES.some(p => editId.startsWith(p));
 }
 

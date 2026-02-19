@@ -18,6 +18,7 @@ import {
   GenericClimateCard,
   GenericEnergyCostCard,
   GenericNordpoolCard,
+  FanCard,
   LightCard,
   MediaPlayerCard,
   MediaGroupCard,
@@ -177,6 +178,21 @@ export function renderVacuumCard(vacuumId, dragProps, getControls, cardStyle, se
       customNames={customNames} customIcons={customIcons}
       getA={getA} callService={callService}
       onOpen={() => { if (!editMode) { setActiveVacuumId(vacuumId); setShowVacuumModal(true); } }}
+      isMobile={isMobile} t={t}
+    />
+  );
+}
+
+export function renderFanCard(fanId, dragProps, getControls, cardStyle, settingsKey, ctx) {
+  const { entities, editMode, cardSettings, customNames, customIcons, getA, callService, setShowFanModal, isMobile, t } = ctx;
+  return (
+    <FanCard
+      key={fanId} fanId={fanId} dragProps={dragProps} controls={getControls(fanId)}
+      cardStyle={cardStyle} entities={entities} editMode={editMode}
+      cardSettings={cardSettings} settingsKey={settingsKey}
+      customNames={customNames} customIcons={customIcons}
+      getA={getA} callService={callService}
+      onOpen={() => { if (!editMode) setShowFanModal(fanId); }}
       isMobile={isMobile} t={t}
     />
   );
@@ -537,6 +553,7 @@ const CARD_REGISTRY = [
   { prefix: 'light_',          renderer: renderLightCard },
   { prefix: 'light.',          renderer: renderLightCard },
   { prefix: 'vacuum.',         renderer: renderVacuumCard },
+  { prefix: 'fan.',            renderer: renderFanCard },
   { prefix: 'media_player.',   renderer: renderMediaPlayerCard },
   { prefix: 'media_group_',    renderer: renderMediaGroupCard },
   { prefix: 'calendar_card_',  renderer: renderCalendarCard },

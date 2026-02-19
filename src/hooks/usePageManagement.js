@@ -136,8 +136,8 @@ export function usePageManagement({
       if (listName === 'header') {
         newConfig.header = (newConfig.header || []).filter((id) => id !== cardId);
         persistConfig(newConfig);
-      } else if (Array.isArray(newConfig[activePage])) {
-        newConfig[activePage] = newConfig[activePage].filter((id) => id !== cardId);
+      } else if (Array.isArray(newConfig[listName])) {
+        newConfig[listName] = newConfig[listName].filter((id) => id !== cardId);
         persistConfig(newConfig);
       }
     },

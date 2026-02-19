@@ -25,6 +25,7 @@ const EditCardModal = lazy(() => import('../modals/EditCardModal'));
 const EditPageModal = lazy(() => import('../modals/EditPageModal'));
 const GenericAndroidTVModal = lazy(() => import('../modals/GenericAndroidTVModal'));
 const GenericClimateModal = lazy(() => import('../modals/GenericClimateModal'));
+const GenericFanModal = lazy(() => import('../modals/GenericFanModal'));
 const CoverModal = lazy(() => import('../modals/CoverModal'));
 const CameraModal = lazy(() => import('../modals/CameraModal'));
 const WeatherModal = lazy(() => import('../modals/WeatherModal'));
@@ -61,6 +62,7 @@ export default function ModalOrchestrator({
     showPersonModal, setShowPersonModal,
     showAndroidTVModal, setShowAndroidTVModal,
     showVacuumModal, setShowVacuumModal,
+    showFanModal, setShowFanModal,
     showSensorInfoModal, setShowSensorInfoModal,
     showCalendarModal, setShowCalendarModal,
     showTodoModal, setShowTodoModal,
@@ -185,18 +187,19 @@ export default function ModalOrchestrator({
     const isEditCover = !!editId && editId.startsWith('cover_card_');
     const isEditSpacer = !!editId && editId.startsWith('spacer_card_');
     const isEditCamera = !!editId && editId.startsWith('camera_card_');
+    const isEditFan = !!editId && (editId.startsWith('fan.') || editId.startsWith('fan_card_'));
     const editSettings = isEditCar ? resolveCarSettings(editId, rawEditSettings) : rawEditSettings;
-    const isEditGenericType = (!!editSettings?.type && (editSettings.type === 'entity' || editSettings.type === 'toggle' || editSettings.type === 'sensor')) || isEditVacuum || isEditAutomation || isEditCar || isEditAndroidTV || isEditRoom;
+    const isEditGenericType = (!!editSettings?.type && (editSettings.type === 'entity' || editSettings.type === 'toggle' || editSettings.type === 'sensor')) || isEditVacuum || isEditAutomation || isEditCar || isEditAndroidTV || isEditRoom || isEditFan;
     const isEditSensor = !!editSettings?.type && editSettings.type === 'sensor';
     const isEditWeatherTemp = !!editId && editId.startsWith('weather_temp_');
     const canEditName = !!editId && !isEditWeatherTemp && !isEditSpacer && editId !== 'media_player' && editId !== 'sonos';
     const isEditNordpool = !!editId && editId.startsWith('nordpool_card_');
-    const canEditIcon = !!editId && (isEditLight || isEditCalendar || isEditTodo || isEditRoom || isEditCover || isEditNordpool || editId.startsWith('automation.') || editId.startsWith('vacuum.') || editId.startsWith('climate_card_') || editId.startsWith('cost_card_') || editId.startsWith('camera_card_') || (!!editEntity && !isEditMedia) || editId === 'car' || editId.startsWith('car_card_'));
+    const canEditIcon = !!editId && (isEditLight || isEditCalendar || isEditTodo || isEditRoom || isEditCover || isEditNordpool || editId.startsWith('automation.') || editId.startsWith('vacuum.') || editId.startsWith('climate_card_') || editId.startsWith('cost_card_') || editId.startsWith('camera_card_') || (!!editEntity && !isEditMedia) || editId === 'car' || editId.startsWith('car_card_') || isEditFan);
     const canEditStatus = !!editEntity && !!editSettingsKey && editSettingsKey.startsWith('settings::');
     return {
       canEditName, canEditIcon, canEditStatus,
       isEditLight, isEditMedia, isEditCalendar, isEditTodo, isEditCost, isEditNordpool, isEditGenericType,
-      isEditAndroidTV, isEditCar, isEditRoom, isEditSpacer, isEditCamera, isEditSensor, isEditWeatherTemp,
+      isEditAndroidTV, isEditCar, isEditRoom, isEditSpacer, isEditCamera, isEditSensor, isEditWeatherTemp, isEditFan,
       editSettingsKey, editSettings,
     };
   }, [showEditCardModal, editSettingsKey, cardSettings, entities]);
@@ -472,6 +475,19 @@ export default function ModalOrchestrator({
             getA={getA}
             t={t}
             vacuumId={activeVacuumId}
+          />
+        </ModalSuspense>
+      )}
+
+      {showFanModal && entities[showFanModal] && (
+        <ModalSuspense>
+          <GenericFanModal
+            show={true}
+            onClose={() => setShowFanModal(null)}
+            entityId={showFanModal}
+            entity={entities[showFanModal]}
+            callService={callService}
+            t={t}
           />
         </ModalSuspense>
       )}

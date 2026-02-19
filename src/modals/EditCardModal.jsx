@@ -533,6 +533,7 @@ export default function EditCardModal({
   isEditCamera,
   isEditRoom,
   isEditAndroidTV,
+  isEditFan,
   editSettingsKey,
   editSettings,
   isEditWeatherTemp,
@@ -1360,6 +1361,24 @@ export default function EditCardModal({
               </div>
              );
           })()}
+
+          {isEditFan && editSettingsKey && (
+            <div className="popup-surface rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-bold text-[var(--text-primary)]">{t('fan.disableAnimation') || 'Disable Animation'}</label>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t('fan.disableAnimationHint') || 'Stop the icon from spinning when the fan is on'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => saveCardSetting(editSettingsKey, 'disable_animation', !editSettings.disable_animation)}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${editSettings.disable_animation ? 'bg-blue-500' : 'bg-gray-600'}`}
+                >
+                  <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${editSettings.disable_animation ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {isEditMedia && editSettingsKey && (
             <div className="space-y-4">

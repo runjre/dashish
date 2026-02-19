@@ -14,7 +14,7 @@ import {
   Archive, Award, Book, BookOpen, Bookmark, Briefcase, Building2, Bus, Cpu, Database, 
   DollarSign, Feather, Gift, Globe, Key, Leaf, Monitor, Paintbrush, PenTool, Plug, 
   Puzzle, Rocket, Router, Siren, Sprout, Sunrise, Sunset, Truck, Wrench, ToggleLeft, 
-  ToggleRight
+  ToggleRight, MoveHorizontal, RotateCw, RotateCcw, ArrowUp, ArrowDown
 } from 'lucide-react';
 import {
   FiHome, FiSettings, FiSun, FiMoon, FiCloud, FiCloudRain, FiWind, FiDroplet, FiZap,
@@ -166,7 +166,8 @@ export const ICON_MAP = {
   MdWater, MdWaterDrop, MdWaterDamage, MdWaterfallChart, MdEmojiNature,
   MdOutlineYard, MdOutlineGrass, MdOutlinePark, MdOutlineNature, MdOutlineNaturePeople,
   MdOutlineOutdoorGrill, MdOutlineWater, MdOutlineWaterDrop, MdOutlineWaterDamage,
-  MdOutlineWaterfallChart, MdOutlineEmojiNature
+  MdOutlineWaterfallChart, MdOutlineEmojiNature,
+  MoveHorizontal, RotateCw, RotateCcw, ArrowUp, ArrowDown
 };
 
 const FALLBACK_ICON = ICON_MAP.Activity || ICON_MAP.Settings || (() => null);

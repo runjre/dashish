@@ -14,6 +14,7 @@ const MODAL_DEFAULTS = {
   showPersonModal: null,
   showAndroidTVModal: null,
   showVacuumModal: null,
+  showFanModal: null,
   showSensorInfoModal: null,
   showCalendarModal: null,
   showTodoModal: null,
@@ -38,6 +39,7 @@ const MODAL_DEFAULTS = {
 const OPEN_CHECK_KEYS = [
   'showNordpoolModal', 'showCostModal', 'activeClimateEntityModal',
   'showLightModal', 'activeCarModal', 'showAndroidTVModal', 'showVacuumModal',
+  'showFanModal',
   'showAddCardModal', 'showConfigModal', 'showEditCardModal',
   'showSensorInfoModal', 'activeMediaModal', 'showStatusPillsConfig',
   'showPersonModal', 'showCalendarModal', 'showTodoModal',

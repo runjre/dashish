@@ -148,4 +148,9 @@ export {
   FolderDown,
   UserCircle2,
   Undo2,
+  MoveHorizontal,
+  RotateCw,
+  RotateCcw,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';

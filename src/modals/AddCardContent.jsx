@@ -8,6 +8,7 @@ import {
   Check,
   CloudSun,
   Coins,
+  Fan,
   Gamepad2,
   Home,
   Lightbulb,
@@ -232,6 +233,7 @@ export default function AddCardContent({
         return !(pagesConfig.settings || []).includes(id);
       }
       if (addCardType === 'vacuum') return id.startsWith('vacuum.') && !(pagesConfig[addCardTargetPage] || []).includes(id);
+      if (addCardType === 'fan') return id.startsWith('fan.') && !(pagesConfig[addCardTargetPage] || []).includes(id);
       if (addCardType === 'camera') return id.startsWith('camera.');
       if (addCardType === 'cover') return id.startsWith('cover.');
       if (addCardType === 'climate') return id.startsWith('climate.');
@@ -545,7 +547,7 @@ export default function AddCardContent({
     );
   };
 
-  const usesEntityMultiSelect = ['sensor', 'light', 'vacuum', 'camera', 'climate', 'cover', 'media', 'toggle', 'entity'].includes(addCardType);
+  const usesEntityMultiSelect = ['sensor', 'light', 'vacuum', 'fan', 'camera', 'climate', 'cover', 'media', 'toggle', 'entity'].includes(addCardType);
   const usesMultiSelectWithCalendar = usesEntityMultiSelect || addCardType === 'calendar';
 
   return (
@@ -569,6 +571,7 @@ export default function AddCardContent({
                 <TypeButton type="sensor" icon={Activity} label={t('addCard.type.sensor')} isActive={addCardType === 'sensor'} onSelect={setAddCardType} />
                 <TypeButton type="light" icon={Lightbulb} label={t('addCard.type.light')} isActive={addCardType === 'light'} onSelect={setAddCardType} />
                 <TypeButton type="vacuum" icon={Bot} label={t('addCard.type.vacuum')} isActive={addCardType === 'vacuum'} onSelect={setAddCardType} />
+                <TypeButton type="fan" icon={Fan} label={t('addCard.type.fan')} isActive={addCardType === 'fan'} onSelect={setAddCardType} />
                 <TypeButton type="camera" icon={Camera} label={getLabel('addCard.type.camera', 'Camera')} isActive={addCardType === 'camera'} onSelect={setAddCardType} />
                 <TypeButton type="climate" icon={Thermometer} label={t('addCard.type.climate')} isActive={addCardType === 'climate'} onSelect={setAddCardType} />
                 <TypeButton type="cover" icon={ArrowUpDown} label={getLabel('addCard.type.cover', 'Cover')} isActive={addCardType === 'cover'} onSelect={setAddCardType} />

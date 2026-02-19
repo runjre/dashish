@@ -289,6 +289,7 @@
  * @property {string | null} showPersonModal
  * @property {string | null} showAndroidTVModal
  * @property {string | null} showVacuumModal
+ * @property {string | null} showFanModal
  * @property {string | null} showSensorInfoModal
  * @property {string | null} showCalendarModal
  * @property {string | null} showTodoModal
@@ -319,6 +320,7 @@
  * @property {(value: string | null) => void} setShowPersonModal
  * @property {(value: string | null) => void} setShowAndroidTVModal
  * @property {(value: string | null) => void} setShowVacuumModal
+ * @property {(value: string | null) => void} setShowFanModal
  * @property {(value: string | null) => void} setShowSensorInfoModal
  * @property {(value: string | null) => void} setShowCalendarModal
  * @property {(value: string | null) => void} setShowTodoModal

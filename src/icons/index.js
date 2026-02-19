@@ -19,6 +19,7 @@ export {
   LogIn, LogOut,
   LayoutTemplate, Upload, Save, FolderDown, UserCircle2,
   Undo2,
+  MoveHorizontal, RotateCw, RotateCcw, ArrowUp, ArrowDown
 } from './lucide';
 
 export { ICON_MAP, getAllIconKeys, getIconComponent, preloadMdiIcons } from './iconMap';

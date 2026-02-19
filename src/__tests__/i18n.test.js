@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { en, nb, nn, sv } from '../i18n';
+import { en, nb, nn, sv, de } from '../i18n';
 
 const getPlaceholders = (value) => {
   const matches = String(value).match(/\{[^}]+\}/g) || [];
@@ -31,16 +31,46 @@ describe('i18n', () => {
     expect(nb).toBeDefined();
     expect(nn).toBeDefined();
     expect(sv).toBeDefined();
+    expect(de).toBeDefined();
     expect(typeof en).toBe('object');
     expect(typeof nb).toBe('object');
     expect(typeof nn).toBe('object');
     expect(typeof sv).toBe('object');
+    expect(typeof de).toBe('object');
+  });
+
+  it('fan keys exist across all supported locales including German', () => {
+    const fanKeys = [
+      'addCard.available.fans',
+      'addCard.item.fans',
+      'addCard.type.fan',
+      'fan.direction',
+      'fan.direction.forward',
+      'fan.direction.reverse',
+      'fan.directionNotAvailable',
+      'fan.oscillate',
+      'fan.preset',
+      'fan.presetNotAvailable',
+      'fan.speed',
+      'fan.disableAnimation',
+      'fan.disableAnimationHint',
+      'fan.turnOff',
+      'fan.turnOn',
+    ];
+
+    const locales = { en, nb, nn, sv, de };
+    Object.entries(locales).forEach(([code, locale]) => {
+      fanKeys.forEach((key) => {
+        expect(locale[key], `${code}.json is missing fan key "${key}"`).toBeDefined();
+      });
+    });
   });
 
   it('en is source-of-truth for key and placeholder parity', () => {
     expectParityWithEnglish(nb, 'nb');
     expectParityWithEnglish(nn, 'nn');
     expectParityWithEnglish(sv, 'sv');
+    expectParityWithEnglish(de, 'de');
   });
 
   it('no empty translation values', () => {
@@ -55,6 +85,9 @@ describe('i18n', () => {
     }
     for (const [key, value] of Object.entries(sv)) {
       expect(value, `sv.json key "${key}" is empty`).not.toBe('');
+    }
+    for (const [key, value] of Object.entries(de)) {
+      expect(value, `de.json key "${key}" is empty`).not.toBe('');
     }
   });
 });

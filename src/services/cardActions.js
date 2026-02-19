@@ -46,6 +46,8 @@ export const handleAddSelected = (ctx) => {
         return selectedEntities.filter((id) => id.startsWith('light.'));
       case 'vacuum':
         return selectedEntities.filter((id) => id.startsWith('vacuum.'));
+      case 'fan':
+        return selectedEntities.filter((id) => id.startsWith('fan.'));
       case 'climate':
         return selectedEntities.filter((id) => id.startsWith('climate.'));
       case 'camera':
