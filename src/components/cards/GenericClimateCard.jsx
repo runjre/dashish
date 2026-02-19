@@ -89,7 +89,7 @@ export default function GenericClimateCard({
               e.stopPropagation();
               stepTemp(0.5);
             }}
-            className="control-plus w-8 h-8 flex items-center justify-center rounded-xl transition-colors bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 hover:bg-[var(--glass-bg-hover)]"
+            className="control-plus w-8 h-8 flex items-center justify-center rounded-xl transition-colors bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 hover:bg-[var(--glass-bg-hover)]"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -98,7 +98,7 @@ export default function GenericClimateCard({
               e.stopPropagation();
               stepTemp(-0.5);
             }}
-            className="control-minus w-8 h-8 flex items-center justify-center rounded-xl transition-colors bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 hover:bg-[var(--glass-bg-hover)]"
+            className="control-minus w-8 h-8 flex items-center justify-center rounded-xl transition-colors bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 hover:bg-[var(--glass-bg-hover)]"
           >
             <Minus className="w-4 h-4" />
           </button>
@@ -149,7 +149,7 @@ export default function GenericClimateCard({
           </p>
         </div>
         <div className="flex items-stretch gap-3">
-          <div className="flex items-center justify-between rounded-2xl p-1 border flex-1" style={{ backgroundColor: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
+          <div className="flex items-center justify-between rounded-2xl p-1 flex-1" style={{ backgroundColor: 'var(--glass-bg)' }}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -173,7 +173,7 @@ export default function GenericClimateCard({
             </button>
           </div>
           {showFan && (
-            <div className="flex items-center justify-center rounded-2xl border w-20 gap-2 pr-2" style={{ backgroundColor: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
+            <div className="flex items-center justify-center rounded-2xl w-20 gap-2 pr-2" style={{ backgroundColor: 'var(--glass-bg)' }}>
               <Fan className="w-4 h-4 text-[var(--text-secondary)]" />
               {fanSpeedLevel === 0 ? (
                 <span className="text-[10px] font-bold text-[var(--text-secondary)] tracking-wider">{translate('climate.fanAuto')}</span>
