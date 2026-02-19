@@ -1,27 +1,45 @@
 ---
 name: Feature Request
-about: Suggest a new feature or improvement
+about: Suggest a Tunet dashboard feature or UX improvement
 title: "[Feature] "
 labels: enhancement
 assignees: ''
 ---
 
-## Description
+## Summary
 
-A clear and concise description of the feature you'd like.
+Describe the feature in 1-3 short sentences.
 
-## Use case
+## Problem this solves
 
-Why would this feature be useful? What problem does it solve?
+What is frustrating or missing today?
 
-## Proposed solution
+## Proposed behavior
 
-How do you envision this working?
+What should happen in the UI?
+
+- Where: [Card / Modal / Sidebar / Header / Page / Status Pills / Other]
+- User flow: [short step list]
+- Settings needed: [yes/no + which]
+
+## Scope (optional)
+
+- Affects cards: [e.g. Weather, Media, Fan]
+- Affects pages/layout: [yes/no]
+- Home Assistant entities/services involved: [e.g. `weather.home`, `media_player.living_room`]
+- Mobile impact: [none / small / major]
 
 ## Alternatives considered
 
-Any alternative solutions or features you've considered.
+Any simpler approach or workaround you considered.
+
+## Acceptance criteria
+
+How do we know this is done?
+
+- [ ] Clear expected result 1
+- [ ] Clear expected result 2
 
 ## Additional context
 
-Add any other context, mockups, or screenshots.
+Screenshots, mockups, references, or related issues/PRs.
