@@ -645,7 +645,7 @@ export default function MediaPage({
               type="text"
               value={chooseQuery}
               onChange={(e) => setChooseQuery(e.target.value)}
-              placeholder="Søk"
+              placeholder={t('media.choose.tab.search')}
               className="w-full bg-[var(--glass-bg)] rounded-xl px-3 py-2 text-[var(--text-primary)] text-sm outline-none"
             />
             <div className="space-y-2">
